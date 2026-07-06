@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Retail Support CRM</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+        --bg-dark: #1e1b2e;
+        --bg-panel: #2a2438;
+        --text-main: #f8fafc;
+        --border: #443c5a;
+        --accent: #ff9a9e;
+        --purple-grad: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+    }
+    body { background-color: var(--bg-dark); color: var(--text-main); font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .card { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 32px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); width: 100%; max-width: 380px; }
+    .input-field { width: 100%; background-color: var(--bg-dark); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 6px; margin-top: 8px; margin-bottom: 16px; }
+    .input-field:focus { outline: none; border-color: var(--accent); }
+    .btn-primary { width: 100%; padding: 12px; border-radius: 6px; background: var(--purple-grad); color: #1e1b2e; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; font-size: 14px;}
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold tracking-wider text-[var(--accent)] mb-1">RETAIL SUPPORT</h1>
+        <p class="text-xs text-[#a18cd1]">CRM System - Manager & Sales Edition</p>
+    </div>
+    
+    <form id="loginForm">
+      <label class="text-xs font-bold text-[#a18cd1] tracking-wider">USER ID</label>
+      <input type="text" id="userId" class="input-field" required placeholder="Masukkan ID Account..." autocomplete="off">
+      
+      <label class="text-xs font-bold text-[#a18cd1] tracking-wider">PASSWORD</label>
+      <input type="password" id="userPass" class="input-field" required placeholder="Masukkan Password...">
+      
+      <div id="errorMsg" class="bg-red-900/40 border border-red-500 text-red-300 text-xs p-3 rounded mb-4 hidden text-center">
+        ❌ USER ID atau Password salah!
+      </div>
+      
+      <button type="submit" class="btn-primary mt-2">LOGIN KE SISTEM</button>
+    </form>
+  </div>
+
+  <script>
+    // Cek jika user sudah login, langsung lempar ke utama.html
+    if(sessionStorage.getItem('crm_logged_in_role')) {
+        window.location.href = 'utama.html';
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const id = document.getElementById('userId').value.trim();
+      const pass = document.getElementById('userPass').value.trim();
+      let role = '';
+
+      // Hardcode Database Account sesuai permintaan
+      if (id === 'SMNW01' && pass === '1234') {
+          role = 'Sales Manager';
+      } else if (id === 'RFSNW01' && pass === '1234') {
+          role = 'RFS Ali';
+      } else if (id === 'AERNW01' && pass === '1234') {
+          role = 'AER Thia';
+      }
+
+      if (role !== '') {
+        // Set sesi dan arahkan ke halaman utama
+        sessionStorage.setItem('crm_logged_in_role', role);
+        window.location.href = 'utama.html';
+      } else {
+        // Munculkan notifikasi error
+        document.getElementById('errorMsg').classList.remove('hidden');
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retail Support CRM - Manager & Sales Edition</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  
+  <script src="db_setup.js"></script>
+  <script src="db_toko.js"></script>
+  <script src="db_plan.js"></script>
+  <script src="db_aktifitas.js"></script>
+  <script src="db_intel.js"></script>
+
+  <style>
+    :root { 
+        --bg-dark: #1e1b2e; 
+        --bg-panel: #2a2438; 
+        --text-main: #f8fafc; 
+        --text-muted: #a39eb5; 
+        --border: #443c5a; 
+        --accent: #ff9a9e; 
+        --accent-hover: #ff7b82; 
+        --accent-glow: rgba(255, 154, 158, 0.15);
+        --danger: #ef4444; 
+        --purple-grad: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+    }
+    body { background-color: var(--bg-dark); color: var(--text-main); font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif; overflow-x: hidden; }
+    .sidebar { background-color: var(--bg-panel); border-right: 1px solid var(--border); }
+    .nav-btn { display: block; width: 100%; text-align: left; padding: 12px 20px; color: var(--text-muted); border-left: 3px solid transparent; cursor: pointer; transition: 0.2s; }
+    .nav-btn:hover { background-color: rgba(255,255,255,0.05); }
+    .nav-btn.active { background-color: var(--accent-glow); color: var(--accent); border-left-color: var(--accent); font-weight: 600; }
+    .card { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    .input-field { width: 100%; background-color: var(--bg-dark); border: 1px solid var(--border); color: white; padding: 8px 12px; border-radius: 6px; margin-top: 4px; }
+    .input-field:focus { outline: none; border-color: var(--accent); }
+    .input-field:disabled, .input-field[readonly] { opacity: 0.6; cursor: not-allowed; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { background-color: var(--bg-dark); color: var(--text-muted); padding: 12px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    td { padding: 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    tr:hover td { background-color: rgba(255,255,255,0.03); }
+    .btn { padding: 8px 16px; border-radius: 6px; font-weight: 500; cursor: pointer; transition: 0.2s; border: none;}
+    .btn-primary { background: var(--purple-grad); color: #1e1b2e; font-weight: 700; }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-secondary { background-color: var(--border); color: white; }
+    .btn-secondary:hover { background-color: #554d6e; }
+    .btn-warning { background-color: #f59e0b; color: #1e1b2e; font-weight: bold; }
+    .badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 50; align-items: center; justify-content: center; }
+    .modal-content { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; padding: 24px; }
+  </style>
+</head>
+<body class="flex h-screen">
+
+  <aside class="sidebar w-64 flex-shrink-0 flex flex-col">
+    <div class="p-6 border-b border-[var(--border)]">
+      <h1 class="text-xl font-bold tracking-wider text-[var(--accent)]">RETAIL SUPPORT</h1>
+    </div>
+    
+    <div class="px-6 py-4 border-b border-[var(--border)] bg-[#1e1b2e]">
+        <label class="text-[10px] text-[var(--accent)] font-bold tracking-wider">LOGGED IN AS:</label>
+        <div id="userProfileDisplay" class="text-white font-bold text-sm mt-1 mb-3">👤 Memuat...</div>
+        <button onclick="logoutSystem()" class="btn btn-secondary w-full text-xs py-2 bg-red-900/30 hover:bg-red-900/60 text-red-300 border border-red-900">🚪 Log Out</button>
+    </div>
+
+    <nav class="flex-1 py-4">
+      <button id="nav-dash" class="nav-btn active" onclick="navigate('dashboard', this)">Dashboard</button>
+      <button id="nav-setup" class="nav-btn" onclick="navigate('setup', this)">Setup Master</button>
+      <button class="nav-btn" onclick="navigate('daftartoko', this)">Daftar Toko</button>
+      <button id="nav-visitplan" class="nav-btn" onclick="navigate('visitplan', this)">Visit Plan</button>
+      <button class="nav-btn" onclick="navigate('aktifitas', this)">Aktifitas</button>
+      <button class="nav-btn" onclick="navigate('intelejen', this)">Intelejen Report</button>
+    </nav>
+  </aside>
+
+  <main class="flex-1 overflow-auto p-8" id="app-content"></main>
+
+  <div class="modal" id="modal"><div class="modal-content" id="modal-body"></div></div>
+
+  <script>
+    // =========================================================================
+    // 0. SISTEM KEAMANAN & LOGIN SESSION
+    // =========================================================================
+    const loggedInRole = sessionStorage.getItem('crm_logged_in_role');
+    
+    // Jika tidak ada sesi login, tendang balik ke index.html
+    if (!loggedInRole) {
+        window.location.href = 'index.html';
+    }
+
+    function logoutSystem() {
+        if(confirm("Apakah Anda yakin ingin keluar dari sistem?")) {
+            sessionStorage.removeItem('crm_logged_in_role');
+            window.location.href = 'index.html';
+        }
+    }
+
+    // =========================================================================
+    // 1. DATA INITIALIZATION & GLOBALS
+    // =========================================================================
+    if(localStorage.getItem('crm_version') !== 'FINAL_V16') {
+      localStorage.clear();
+      localStorage.setItem('crm_version', 'FINAL_V16');
+    }
+
+    function getDB(key, defaultData) { 
+        if(!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(defaultData)); 
+        return JSON.parse(localStorage.getItem(key)); 
+    }
+    function setDB(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+
+    // Memuat Database
+    let db = { 
+        setup: getDB('db_setup', typeof INIT_SETUP !== 'undefined' ? INIT_SETUP : {}), 
+        toko: getDB('db_toko', typeof INIT_TOKO !== 'undefined' ? INIT_TOKO : []), 
+        plan: getDB('db_plan', typeof INIT_PLAN !== 'undefined' ? INIT_PLAN : []), 
+        aktifitas: getDB('db_aktifitas', typeof INIT_AKTIFITAS !== 'undefined' ? INIT_AKTIFITAS : []), 
+        intel: getDB('db_intel', typeof INIT_INTEL !== 'undefined' ? INIT_INTEL : []) 
+    };
+
+    window.dashFilters = { start: '', end: '', pic: '', agen: '', toko: '' };
+    window.vpFilters = { pic: '' }; 
+    window.actFilters = { jenis: '' }; 
+    window.currentUserRole = loggedInRole; // Ambil dari session
+    window.currentPage = 'dashboard';
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    
+    function parseTargetKunjungan(val) {
+      if (!val) return 0;
+      if (typeof val === 'number') return val;
+      const match = String(val).match(/\d+/);
+      return match ? parseInt(match[0], 10) : 0;
+    }
+
+    // Update Status Visit Plan Auto
+    db.plan.forEach(p => {
+        if(p.status !== 'Visited' && p.status !== 'Contacted' && p.status !== 'Cancelled' && p.status !== 'Recreated') { 
+            p.status = (p.planDate < todayStr) ? 'Overdue' : 'Scheduled'; 
+        }
+        let diff = Math.ceil((new Date(p.planDate) - new Date(todayStr)) / (1000 * 60 * 60 * 24));
+        p.daysUntilDue = (p.status === 'Visited' || p.status === 'Contacted' || p.status === 'Cancelled' || p.status === 'Recreated') ? 'Done' : diff;
+    });
+    setDB('db_plan', db.plan);
+
+    // =========================================================================
+    // 2. CORE SYSTEM & ROLE FUNCTIONS
+    // =========================================================================
+    function applyRoleRestrictions(role) {
+        document.getElementById('userProfileDisplay').innerText = `👤 ${role}`;
+        let vpBtn = document.getElementById('nav-visitplan');
+        
+        if(role === 'Sales Manager') {
+            document.getElementById('nav-setup').style.display = 'block';
+            vpBtn.innerText = 'Visit Plan';
+        } else if (role === 'AER Thia') {
+            document.getElementById('nav-setup').style.display = 'none';
+            vpBtn.innerText = 'Contact Plan'; 
+        } else {
+            // Role RFS Ali (Fungsi = Sales)
+            document.getElementById('nav-setup').style.display = 'none';
+            vpBtn.innerText = 'Visit Plan';
+        }
+
+        renderPage(window.currentPage);
+    }
+
+    function navigate(page, btnElement) {
+      if(btnElement) { document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active')); btnElement.classList.add('active'); }
+      window.currentPage = page;
+      renderPage(page);
+    }
+
+    function renderPage(page) {
+      const content = document.getElementById('app-content');
+      if(page === 'dashboard') renderDashboard(content);
+      if(page === 'setup') renderSetup(content);
+      if(page === 'daftartoko') renderDaftarToko(content);
+      if(page === 'visitplan') renderVisitPlan(content);
+      if(page === 'aktifitas') renderAktifitas(content);
+      if(page === 'intelejen') renderIntelejen(content);
+    }
+
+    function openModal(html) { document.getElementById('modal-body').innerHTML = html; document.getElementById('modal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('modal').style.display = 'none'; }
+    function optionsHtml(arrayData, selectedValue = '') { return arrayData ? arrayData.map(val => `<option value="${val}" ${val === selectedValue ? 'selected' : ''}>${val}</option>`).join('') : ''; }
+    function generateId(prefix) { return prefix + Math.random().toString(36).substr(2, 5).toUpperCase(); }
+
+    function delToko(id) { if(confirm('Hapus Toko ini?')) { db.toko = db.toko.filter(t => t.contactId !== id); setDB('db_toko', db.toko); renderPage('daftartoko'); } }
+    function delPlan(id) { if(confirm('Hapus Visit Plan ini?')) { db.plan = db.plan.filter(p => p.id !== id); setDB('db_plan', db.plan); renderPage('visitplan'); } }
+    function delAktifitas(id) { if(confirm('Hapus Aktifitas ini?')) { db.aktifitas = db.aktifitas.filter(a => a.id !== id); setDB('db_aktifitas', db.aktifitas); renderPage('aktifitas'); } }
+    function delIntel(id) { if(confirm('Hapus Report ini?')) { db.intel = db.intel.filter(i => i.id !== id); setDB('db_intel', db.intel); renderPage('intelejen'); } }
+
+    window.resetFilters = function() { window.dashFilters = { start: '', end: '', pic: '', agen: '', toko: '' }; renderPage('dashboard'); }
+    function autoAddSetup(key, val) { if(val && db.setup[key] && !db.setup[key].includes(val)) { db.setup[key].push(val); setDB('db_setup', db.setup); } }
+
+    window.downloadReportLampiran = function() {
+        let csvContent = "data:text/csv;charset=utf-8,Tanggal,Nama Toko,PIC,Aktifitas,Status Lampiran Foto\n";
+        db.aktifitas.forEach(a => {
+            let p_pic = db.toko.find(t => t.kodeKontak === a.kontakToko)?.pic || '-';
+            let row = `${a.tanggalKunjungan},"${a.namaToko}",${p_pic},"${a.aktifitas}",${a.linkTersedia}`;
+            csvContent += row + "\n";
+        });
+        let encodedUri = encodeURI(csvContent);
+        let link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "report_kepatuhan_lampiran.csv");
+        document.body.appendChild(link);
+        link.click();
+    }
+
+    // =========================================================================
+    // IMPORT DATABASE EXCEL LOGIC
+    // =========================================================================
+    window.handleImportExcel = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            
+            let sheetName = workbook.SheetNames.includes('Daftar Toko') ? 'Daftar Toko' : workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            
+            let headerRowIndex = -1;
+            for(let i = 0; i < jsonData.length; i++) {
+                if(jsonData[i] && jsonData[i].includes('CONTACT ID')) { headerRowIndex = i; break; }
+            }
+
+            if(headerRowIndex === -1) { alert("Gagal Import: Tidak menemukan kolom 'CONTACT ID'."); return; }
+
+            let headers = jsonData[headerRowIndex];
+            let addedCount = 0; let updatedCount = 0;
+
+            for(let i = headerRowIndex + 1; i < jsonData.length; i++) {
+                let row = jsonData[i];
+                if(!row || row.length === 0 || !row[headers.indexOf('CONTACT ID')]) continue; 
+
+                let rawTarget = row[headers.indexOf('TARGET KUNJUNGAN')];
+                let targetKunjungan = rawTarget ? String(rawTarget).trim() : '1 x Sebulan';
+                let rawLastVisit = row[headers.indexOf('LAST VISIT')];
+                let lastVisit = '';
+                if (rawLastVisit) {
+                  if (rawLastVisit instanceof Date) { lastVisit = rawLastVisit.toISOString().split('T')[0]; } 
+                  else if (typeof rawLastVisit === 'number') { let d = new Date(Math.round((rawLastVisit - 25569) * 86400 * 1000)); lastVisit = d.toISOString().split('T')[0]; } 
+                  else { lastVisit = String(rawLastVisit).trim(); }
+                }
+
+                let newObj = {
+                    contactId: String(row[headers.indexOf('CONTACT ID')] || '').trim(),
+                    namaToko: String(row[headers.indexOf('NAMA TOKO')] || '').trim(),
+                    contactPerson: String(row[headers.indexOf('CONTACT PERSON')] || '').trim(),
+                    jobTitle: String(row[headers.indexOf('JOB TITLE')] || '').trim(),
+                    phone: String(row[headers.indexOf('PHONE')] || '').trim(),
+                    location: String(row[headers.indexOf('LOCATION')] || '').trim(),
+                    orderKe: String(row[headers.indexOf('ORDER KE')] || '').trim(),
+                    status: String(row[headers.indexOf('STATUS')] || '').trim(),
+                    jenisKunjungan: String(row[headers.indexOf('JENIS KUNJUNGAN')] || '').trim(),
+                    pic: String(row[headers.indexOf('PIC')] || '').trim(),
+                    mapsLink: String(row[headers.indexOf('MAPS LINK')] || '').trim(),
+                    targetKunjungan: targetKunjungan,
+                    lastVisit: lastVisit
+                };
+                newObj.kodeKontak = `[${newObj.contactId}] ${newObj.contactPerson}`;
+
+                autoAddSetup('ORDER_KE', newObj.orderKe);
+                autoAddSetup('STATUS_TOKO', newObj.status);
+                autoAddSetup('JENIS_KUNJUNGAN', newObj.jenisKunjungan);
+                autoAddSetup('PIC', newObj.pic);
+
+                let existingIdx = db.toko.findIndex(t => t.contactId === newObj.contactId);
+                if(existingIdx > -1) {
+                    newObj.lastVisit = db.toko[existingIdx].lastVisit || lastVisit;
+                    db.toko[existingIdx] = newObj; updatedCount++;
+                } else {
+                    db.toko.push(newObj); addedCount++;
+                }
+            }
+            setDB('db_toko', db.toko);
+            alert(`SINKRONISASI BERHASIL!\n\nData Baru: ${addedCount}\nDiperbarui: ${updatedCount}`);
+            renderPage('daftartoko'); 
+        };
+        reader.readAsArrayBuffer(file);
+    };
+
+    // =========================================================================
+    // 3. DASHBOARD
+    // =========================================================================
+    function renderDashboard(c) {
+      let fStart = document.getElementById('dashStart') ? document.getElementById('dashStart').value : window.dashFilters.start;
+      let fEnd = document.getElementById('dashEnd') ? document.getElementById('dashEnd').value : window.dashFilters.end;
+      let fToko = document.getElementById('dashToko') ? document.getElementById('dashToko').value : window.dashFilters.toko;
+      let fPIC = document.getElementById('dashPIC') ? document.getElementById('dashPIC').value : window.dashFilters.pic;
+      let fAgen = document.getElementById('dashAgen') ? document.getElementById('dashAgen').value : window.dashFilters.agen;
+      
+      window.dashFilters = { start: fStart, end: fEnd, pic: fPIC, agen: fAgen, toko: fToko };
+      let tokoMap = {}; db.toko.forEach(t => tokoMap[t.kodeKontak] = { pic: t.pic, orderKe: t.orderKe, status: t.status });
+
+      const baseF_Plan = p => { if(fStart && p.planDate < fStart) return false; if(fEnd && p.planDate > fEnd) return false; if(fToko && p.kontakToko !== fToko) return false; return true; };
+      const baseF_Akt = a => { if(fStart && a.tanggalKunjungan < fStart) return false; if(fEnd && a.tanggalKunjungan > fEnd) return false; if(fToko && a.kontakToko !== fToko) return false; return true; };
+      const baseF_Intel = i => { if(fStart && i.date < fStart) return false; if(fEnd && i.date > fEnd) return false; if(fToko && i.kontakToko !== fToko) return false; return true; };
+
+      let fPlanCombined = db.plan.filter(p => baseF_Plan(p) && (!fPIC || p.pic === fPIC) && (!fAgen || (tokoMap[p.kontakToko] && tokoMap[p.kontakToko].orderKe === fAgen)));
+      let fAktifitasCombined = db.aktifitas.filter(a => baseF_Akt(a) && (!fPIC || (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].pic === fPIC)) && (!fAgen || (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].orderKe === fAgen)));
+      let fIntelCombined = db.intel.filter(i => baseF_Intel(i) && (!fPIC || (tokoMap[i.kontakToko] && tokoMap[i.kontakToko].pic === fPIC)) && (!fAgen || (tokoMap[i.kontakToko] && tokoMap[i.kontakToko].orderKe === fAgen)));
+      
+      let filteredToko = db.toko.filter(t => {
+          if(fToko && t.kodeKontak !== fToko) return false;
+          if(fPIC && t.pic !== fPIC) return false;
+          if(fAgen && t.orderKe !== fAgen) return false;
+          return true;
+      });
+
+      let kpi_tokoAktif = filteredToko.filter(t => t.status !== 'Inactive' && t.status !== 'Non Aktif (Nomer Tidak dapat dihubungi)').length;
+      let kpi_targetKunjungan = filteredToko.reduce((sum, t) => sum + parseTargetKunjungan(t.targetKunjungan), 0);
+      
+      let c_visited = fPlanCombined.filter(p=>p.status==='Visited').length;
+      let c_contacted = fPlanCombined.filter(p=>p.status==='Contacted').length;
+      let c_scheduled = fPlanCombined.filter(p=>p.status==='Scheduled').length;
+      let c_overdue = fPlanCombined.filter(p=>p.status==='Overdue').length;
+      let c_cancelled = fPlanCombined.filter(p=>p.status==='Cancelled').length;
+      
+      let kpi_realisasi = c_visited + c_contacted;
+      let kpi_persentase = kpi_targetKunjungan > 0 ? Math.round((kpi_realisasi / kpi_targetKunjungan) * 100) : 0;
+
+      let compData = {}; fIntelCombined.forEach(i => { let k = i.kompetitor || 'Unknown'; if(k) compData[k] = (compData[k] || 0) + 1; });
+      let issueData = {}; fAktifitasCombined.forEach(a => { if(a.keluhanFeedback && a.keluhanFeedback !== 'Tidak ada keluhan') issueData[a.keluhanFeedback] = (issueData[a.keluhanFeedback] || 0) + 1; });
+      let samplingData = {}; fAktifitasCombined.forEach(a => { if(a.kategoriSampling) samplingData[a.kategoriSampling] = (samplingData[a.kategoriSampling] || 0) + 1; });
+      let linkData = { 'Melampirkan': 0, 'Tidak Melampirkan': 0 };
+      fAktifitasCombined.forEach(a => { if(a.linkTersedia === 'Melampirkan') linkData['Melampirkan']++; else linkData['Tidak Melampirkan']++; });
+
+      let optToko = db.toko.map(t => `<option value="${t.kodeKontak}" ${fToko === t.kodeKontak ? 'selected':''}>${t.namaToko}</option>`).join('');
+      let upcomingPlan = db.plan.filter(p => p.status === 'Scheduled' && p.planDate >= todayStr && (!fPIC || p.pic === fPIC) && (!fAgen || (tokoMap[p.kontakToko] && tokoMap[p.kontakToko].orderKe === fAgen))).sort((a,b) => new Date(a.planDate) - new Date(b.planDate));
+      
+      let actionTableData = fAktifitasCombined.filter(a => (a.penjelasanKeluhan && a.penjelasanKeluhan.trim() !== '') || (a.nextAction && a.nextAction.trim() !== ''));
+
+      c.innerHTML = `
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold">Dashboard Analytics</h1>
+            <div>
+                <button onclick="downloadReportLampiran()" class="btn btn-warning text-sm mr-2 text-black shadow-md">📥 Unduh Kepatuhan Foto</button>
+                <button onclick="resetFilters()" class="btn btn-secondary text-sm shadow-md">↻ Reset Filter</button>
+            </div>
+        </div>
+        
+        <div class="card bg-[#352f4a] border-[var(--border)] mb-6 shadow-md">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+               <div><label class="text-xs text-[var(--accent)] font-bold mb-1 block">TANGGAL MULAI</label><input type="date" id="dashStart" value="${fStart}" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"></div>
+               <div><label class="text-xs text-[var(--accent)] font-bold mb-1 block">TANGGAL AKHIR</label><input type="date" id="dashEnd" value="${fEnd}" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"></div>
+               <div><label class="text-xs text-[#a18cd1] font-bold mb-1 block">FILTER TOKO</label><select id="dashToko" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua Toko --</option>${optToko}</select></div>
+               <div><label class="text-xs text-[#a18cd1] font-bold mb-1 block">FILTER AGENT</label><select id="dashAgen" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua Agent --</option>${optionsHtml(db.setup.ORDER_KE, fAgen)}</select></div>
+               <div><label class="text-xs text-[#a18cd1] font-bold mb-1 block">FILTER PIC</label><select id="dashPIC" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua PIC --</option>${optionsHtml(db.setup.PIC, fPIC)}</select></div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="card border-t-4 border-[#a18cd1] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TOTAL TOKO AKTIF</p><h2 class="text-3xl font-bold mt-1 text-white">${kpi_tokoAktif}</h2></div>
+            <div class="card border-t-4 border-[#a18cd1] shadow-md">
+              <p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TARGET MASTER KUNJUNGAN</p>
+              <h2 class="text-3xl font-bold mt-1 text-[#fbc2eb]">${kpi_targetKunjungan}</h2>
+            </div>
+            <div class="card border-t-4 border-[var(--accent)] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">REALISASI (VISIT + CONTACTED)</p><h2 class="text-3xl font-bold mt-1 text-[var(--accent)]">${kpi_realisasi}</h2></div>
+            <div class="card border-t-4 border-[var(--accent)] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">PERSENTASE PENCAPAIAN</p><h2 class="text-3xl font-bold mt-1 ${kpi_persentase >= 100 ? 'text-green-400' : 'text-yellow-400'}">${kpi_persentase}%</h2></div>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[var(--accent)]">STATUS KUNJUNGAN</h3><div class="flex-1 relative w-full h-full"><canvas id="chartKunjungan"></canvas></div></div>
+            <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[#a18cd1]">KATEGORI KOMPLAIN</h3><div class="flex-1 relative w-full h-full"><canvas id="chartIssue"></canvas></div></div>
+            <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[var(--accent)]">KATEGORI SAMPLING</h3><div class="flex-1 relative w-full h-full"><canvas id="chartSampling"></canvas></div></div>
+            <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-yellow-500">KEPATUHAN FOTO (PIC)</h3><div class="flex-1 relative w-full h-full"><canvas id="chartLampiran"></canvas></div></div>
+            <div class="card h-64 flex flex-col lg:col-span-2 shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[#a18cd1]">LAPORAN KOMPETITOR</h3><div class="flex-1 relative w-full h-full"><canvas id="chartKompetitor"></canvas></div></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="card flex flex-col shadow-md">
+              <h3 class="font-bold text-sm mb-4">AKTIFITAS TERAKHIR</h3>
+              <div class="overflow-x-auto flex-1">
+              <table>
+                <thead><tr><th>NAMA TOKO</th><th>TGL KUNJUNGAN</th><th>AKTIFITAS</th><th>STATUS</th></tr></thead>
+                <tbody>${fAktifitasCombined.length > 0 ? fAktifitasCombined.slice(-5).reverse().map(a => `<tr><td class="font-bold text-[var(--accent)]">${a.namaToko}</td><td>${a.tanggalKunjungan}</td><td><span class="badge" style="background:var(--purple-grad); color:#1e1b2e">${a.aktifitas}</span></td><td><span class="badge" style="background:var(--border); color:#fff">${a.status}</span></td></tr>`).join('') : `<tr><td colspan="4" class="text-center text-[var(--text-muted)] py-4">Tidak ada data.</td></tr>`}</tbody>
+              </table>
+              </div>
+            </div>
+
+            <div class="card flex flex-col border-l-4 border-yellow-500 shadow-md">
+              <h3 class="font-bold text-sm mb-4 text-yellow-500">UPCOMING VISIT (SCHEDULED)</h3>
+              <div class="overflow-x-auto flex-1">
+              <table>
+                <thead><tr><th>NAMA TOKO</th><th>TUJUAN KUNJUNGAN</th><th>PLAN DATE</th><th>PRIORITY</th></tr></thead>
+                <tbody>
+                  ${upcomingPlan.length > 0 ? upcomingPlan.slice(0, 5).map(p => `<tr>
+                    <td class="font-bold text-[#fbc2eb]">${p.namaToko}</td>
+                    <td>${p.tujuanKunjungan}</td>
+                    <td>${p.planDate}</td>
+                    <td><span class="badge" style="background:${p.priority==='High'?'var(--danger)':'#f59e0b'}; color:#1e1b2e">${p.priority}</span></td>
+                  </tr>`).join('') : `<tr><td colspan="4" class="text-center text-[var(--text-muted)] py-4">Tidak ada jadwal terdekat.</td></tr>`}
+                </tbody>
+              </table>
+              </div>
+            </div>
+        </div>
+
+        <div class="card flex flex-col shadow-md mt-6">
+            <h3 class="font-bold text-sm mb-4 text-[#ff9a9e]">TAB KELUHAN & NEXT ACTION</h3>
+            <div class="overflow-x-auto">
+            <table>
+                <thead><tr><th>NAMA TOKO</th><th>TANGGAL</th><th>KATEGORI</th><th>PENJELASAN KELUHAN</th><th>NEXT ACTION</th></tr></thead>
+                <tbody>
+                  ${actionTableData.length > 0 ? actionTableData.map(a => `<tr>
+                    <td class="font-bold text-[#fbc2eb]">${a.namaToko}</td>
+                    <td>${a.tanggalKunjungan}</td>
+                    <td class="text-[var(--danger)] font-bold">${a.keluhanFeedback}</td>
+                    <td class="text-xs whitespace-normal max-w-xs">${a.penjelasanKeluhan || '-'}</td>
+                    <td class="text-xs whitespace-normal max-w-xs text-yellow-200">${a.nextAction || '-'}</td>
+                  </tr>`).join('') : `<tr><td colspan="5" class="text-center text-[var(--text-muted)] py-4">Tidak ada keluhan dengan aksi tercatat.</td></tr>`}
+                </tbody>
+            </table>
+            </div>
+        </div>
+      `;
+
+      if (!window.myCharts) window.myCharts = {};
+      ['chartKunjungan', 'chartLampiran', 'chartIssue', 'chartSampling', 'chartKompetitor'].forEach(id => { if(window.myCharts[id]) window.myCharts[id].destroy(); });
+
+      setTimeout(() => {
+        let optG = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: {color: '#f8fafc', font:{size:10}} } } };
+        
+        if(document.getElementById('chartKunjungan')) window.myCharts['chartKunjungan'] = new Chart(document.getElementById('chartKunjungan'), { type: 'doughnut', data: { labels: ['Visited', 'Contacted', 'Scheduled', 'Overdue', 'Cancelled'], datasets: [{ data: [c_visited, c_contacted, c_scheduled, c_overdue, c_cancelled], backgroundColor: ['#ff9a9e', '#fbc2eb', '#a18cd1', '#ef4444', '#94a3b8'], borderWidth: 0 }] }, options: optG });
+        if(document.getElementById('chartLampiran')) window.myCharts['chartLampiran'] = new Chart(document.getElementById('chartLampiran'), { type: 'doughnut', data: { labels: Object.keys(linkData), datasets: [{ data: Object.values(linkData), backgroundColor: ['#10b981', '#ef4444'], borderWidth: 0 }] }, options: optG });
+        if(document.getElementById('chartIssue')) window.myCharts['chartIssue'] = new Chart(document.getElementById('chartIssue'), { type: 'pie', data: { labels: Object.keys(issueData).length ? Object.keys(issueData) : ['Aman'], datasets: [{ data: Object.keys(issueData).length ? Object.values(issueData) : [1], backgroundColor: ['#fbc2eb', '#a18cd1', '#ff9a9e', '#ff7b82'], borderWidth: 0 }] }, options: optG });
+        if(document.getElementById('chartSampling')) window.myCharts['chartSampling'] = new Chart(document.getElementById('chartSampling'), { type: 'polarArea', data: { labels: Object.keys(samplingData).length ? Object.keys(samplingData) : ['N/A'], datasets: [{ data: Object.keys(samplingData).length ? Object.values(samplingData) : [1], backgroundColor: ['rgba(255, 154, 158, 0.7)', 'rgba(161, 140, 209, 0.7)', 'rgba(251, 194, 235, 0.7)'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { display: false } } } });
+        if(document.getElementById('chartKompetitor')) window.myCharts['chartKompetitor'] = new Chart(document.getElementById('chartKompetitor'), { type: 'bar', data: { labels: Object.keys(compData).length ? Object.keys(compData) : ['Belum Ada'], datasets: [{ label: 'Laporan', data: Object.keys(compData).length ? Object.values(compData) : [0], backgroundColor: '#a18cd1' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: {color: '#94a3b8'} }, x: { ticks: {color: '#94a3b8'} } }, plugins: { legend: { display: false } } } });
+      }, 50);
+    }
+
+    // =========================================================================
+    // 4. SETUP MODULE
+    // =========================================================================
+    function renderSetup(c) {
+      let html = `<div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Setup Master Data</h1>
+        <button onclick="addMasterCategory()" class="btn btn-warning text-black shadow-lg">+ Tambah Kategori Tabel Master</button>
+      </div><div class="grid grid-cols-2 lg:grid-cols-3 gap-6">`;
+      
+      for(let key in db.setup) {
+        let displayKey = key.replace(/_/g, ' ');
+        html += `<div class="card flex flex-col h-full"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-[var(--accent)] text-lg">${displayKey}</h3><button onclick="addSetup('${key}')" class="text-xs btn-primary px-3 py-1 rounded shadow">+ Add</button></div><ul class="text-sm flex-1 overflow-y-auto max-h-60 pr-2">`;
+        if (!db.setup[key] || db.setup[key].length === 0) { html += `<li class="text-[var(--text-muted)] italic">Belum ada data</li>`; }
+        else { db.setup[key].forEach((item, index) => { html += `<li class="flex justify-between items-center border-b border-[var(--border)] py-2 group"><span class="truncate pr-2">${item}</span><button onclick="delSetup('${key}', ${index})" class="text-[var(--danger)] text-xs font-bold px-2 py-1 bg-red-900/20 rounded">Hapus</button></li>`; }); }
+        html += `</ul></div>`;
+      }
+      c.innerHTML = html + `</div>`;
+    }
+
+    window.addMasterCategory = function() {
+        let catName = prompt("Masukkan Nama Kategori Tabel Baru (cth: AREA_PENGIRIMAN):");
+        if(catName && catName.trim() !== '') {
+            let safeKey = catName.toUpperCase().replace(/\s+/g, '_');
+            if(!db.setup[safeKey]) { db.setup[safeKey] = []; setDB('db_setup', db.setup); renderPage('setup'); }
+            else { alert("Kategori tersebut sudah ada di sistem."); }
+        }
+    }
+    
+    function addSetup(key) { openModal(`<h2 class="text-xl font-bold mb-4">Tambah Master Data: ${key.replace(/_/g, ' ')}</h2><input type="text" id="setupVal" class="input-field mb-4" placeholder="Masukkan pilihan baru..."><div class="flex gap-2"><button onclick="closeModal()" class="btn btn-secondary">Batal</button><button onclick="saveSetup('${key}')" class="btn btn-primary">Simpan</button></div>`); }
+    function saveSetup(key) { let val = document.getElementById('setupVal').value; if(val) { autoAddSetup(key, val); closeModal(); renderPage('setup'); } }
+    function delSetup(key, idx) { if(confirm('Hapus item pilihan ini?')) { db.setup[key].splice(idx, 1); setDB('db_setup', db.setup); renderPage('setup'); } }
+
+    // =========================================================================
+    // 5. DAFTAR TOKO
+    // =========================================================================
+    function renderDaftarToko(c) {
+      let isManager = window.currentUserRole === 'Sales Manager';
+
+      let rows = db.toko.map(t => {
+        let statusColor = (t.status === 'Inactive' || t.status === 'Non Aktif (Nomer Tidak dapat dihubungi)') ? 'var(--danger)' : 
+                          (t.status === 'Active') ? '#10b981' : 
+                          (t.status === 'Prospect') ? '#f59e0b' : 'var(--accent)';
+        let actBtns = isManager ? `<button onclick="formToko('${t.contactId}')" class="text-xs text-[#a18cd1] hover:text-white font-bold mr-2">Edit</button><button onclick="delToko('${t.contactId}')" class="text-xs text-[var(--danger)] hover:text-white font-bold">Del</button>` : `<span class="text-[10px] text-gray-500">Read Only</span>`;
+        return `<tr>
+          <td class="text-xs text-[var(--text-muted)]">${t.contactId}</td>
+          <td class="font-bold text-[var(--accent)]">${t.namaToko}</td>
+          <td>${t.contactPerson}</td>
+          <td class="text-xs">${t.jobTitle || '-'}</td>
+          <td>${t.phone || '-'}</td>
+          <td>${t.orderKe}</td>
+          <td><span class="badge" style="background:${statusColor}; color:#1e1b2e">${t.status}</span></td>
+          <td class="text-xs">${t.jenisKunjungan}</td>
+          <td>${t.pic}</td>
+          <td class="font-bold text-[#fbc2eb]">${t.targetKunjungan || '-'}</td>
+          <td>${t.lastVisit || '-'}</td>
+          <td class="text-xs">${t.kodeKontak}</td>
+          <td>${actBtns}</td>
+        </tr>`;
+      }).join('');
+      
+      let uploadBtn = isManager ? `<label class="btn btn-warning text-black cursor-pointer mr-2">📤 Import Data (Excel)<input type="file" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleImportExcel(event)"></label>` : '';
+
+      c.innerHTML = `
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-3xl font-bold">Daftar Toko</h1>
+          <div>${uploadBtn}<button onclick="formToko()" class="btn btn-primary">+ Add Toko Baru</button></div>
+        </div>
+        <div class="card overflow-x-auto">
+          <table>
+            <thead>
+              <tr>
+                <th>CONTACT ID</th><th>NAMA TOKO</th><th>CONTACT PERSON</th><th>JOB TITLE</th>
+                <th>PHONE</th><th>ORDER KE</th><th>STATUS</th><th>JENIS KUNJUNGAN</th>
+                <th>PIC</th><th>TARGET KUNJUNGAN</th><th>LAST VISIT</th><th>KODE KONTAK</th><th>ACT</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
+    }
+
+    function formToko(editId = null) {
+      let isManager = window.currentUserRole === 'Sales Manager';
+      let t = editId ? db.toko.find(x => x.contactId === editId) : null;
+
+      openModal(`
+        <h2 class="text-xl font-bold mb-4 text-[var(--accent)]">${t ? 'Edit Data Toko' : 'Form Tambah Daftar Toko'}</h2>
+        <form onsubmit="saveToko(event, ${t ? true : false})">
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div><label class="text-xs">CONTACT ID *</label><input required name="contactId" class="input-field" value="${t?.contactId||''}" ${t ? 'readonly' : ''}></div>
+            <div><label class="text-xs">NAMA TOKO *</label><input required name="namaToko" class="input-field" value="${t?.namaToko||''}"></div>
+            <div><label class="text-xs">CONTACT PERSON</label><input name="contactPerson" class="input-field" value="${t?.contactPerson||''}"></div>
+            <div><label class="text-xs">JOB TITLE</label><input name="jobTitle" class="input-field" value="${t?.jobTitle||''}"></div>
+            <div><label class="text-xs">PHONE</label><input name="phone" class="input-field" value="${t?.phone||''}"></div>
+            <div><label class="text-xs">LOCATION</label><input name="location" class="input-field" value="${t?.location||''}"></div>
+            <div><label class="text-xs text-[#a18cd1] font-bold">ORDER KE</label>
+                 ${isManager ? `<select name="orderKe" class="input-field border-[var(--accent)]" required><option value="">Pilih Order Ke...</option>${optionsHtml(db.setup.ORDER_KE, t?.orderKe)}</select>` : `<input name="orderKe" class="input-field" value="${t?.orderKe||''}" readonly>`}
+            </div>
+            <div><label class="text-xs text-[#a18cd1] font-bold">STATUS TOKO</label><select name="status" class="input-field" required><option value="">Pilih Status...</option>${optionsHtml(db.setup.STATUS_TOKO, t?.status)}</select></div>
+            <div><label class="text-xs text-[var(--text-muted)]">JENIS KUNJUNGAN</label><select name="jenisKunjungan" class="input-field">${optionsHtml(db.setup.JENIS_KUNJUNGAN, t?.jenisKunjungan)}</select></div>
+            <div><label class="text-xs text-[var(--text-muted)]">PIC</label><select name="pic" class="input-field">${optionsHtml(db.setup.PIC, t?.pic)}</select></div>
+            <div><label class="text-xs font-bold text-[#fbc2eb]">TARGET KUNJUNGAN</label>
+              <select name="targetKunjungan" class="input-field">${optionsHtml(db.setup.TARGET_KUNJUNGAN_OPTIONS || ['1 x Sebulan','2 x Sebulan'], t?.targetKunjungan)}</select>
+            </div>
+            <div><label class="text-xs">MAPS LINK</label><input name="mapsLink" class="input-field" value="${t?.mapsLink||''}" placeholder="https://maps.app.goo.gl/..."></div>
+          </div>
+          <div class="flex gap-2 pt-2 border-t border-[var(--border)]"><button type="button" onclick="closeModal()" class="btn btn-secondary">Batal</button><button type="submit" class="btn btn-primary flex-1">Simpan Toko</button></div>
+        </form>
+      `);
+    }
+
+    function saveToko(e, isEdit) {
+      e.preventDefault(); 
+      let obj = Object.fromEntries(new FormData(e.target));
+      obj.kodeKontak = `[${obj.contactId}] ${obj.contactPerson}`;
+      if(isEdit) { let idx = db.toko.findIndex(x => x.contactId === obj.contactId); obj.lastVisit = db.toko[idx].lastVisit; db.toko[idx] = obj; } 
+      else { obj.lastVisit = ''; db.toko.push(obj); }
+      setDB('db_toko', db.toko); closeModal(); renderPage('daftartoko');
+    }
+
+    // =========================================================================
+    // 6. VISIT PLAN
+    // =========================================================================
+    function renderVisitPlan(c) {
+      let isManager = window.currentUserRole === 'Sales Manager';
+      let vpLabel = window.currentUserRole === 'AER Thia' ? 'Contact Plan' : 'Visit Plan';
+      let fPIC = window.vpFilters.pic;
+
+      let filteredPlans = db.plan.filter(p => {
+          // Menyembunyikan yang berstatus Visited, Contacted, atau Recreated
+          if (p.status === 'Visited' || p.status === 'Contacted' || p.status === 'Recreated') return false;
+          if (fPIC && p.pic !== fPIC) return false;
+          return true;
+      });
+
+      let rows = filteredPlans.map(p => {
+        let badgeColor = (p.status==='Overdue' ? 'var(--danger)' : (p.status==='Cancelled' ? '#94a3b8' : '#f59e0b'));
+        let txtColor = (p.status==='Scheduled') ? '#1e1b2e' : '#fff';
+        
+        let actionBtn = isManager ? `<button onclick="delPlan('${p.id}')" class="text-xs text-[var(--text-muted)] hover:text-white font-bold ml-2">Del</button>` : '';
+        if(p.status === 'Overdue') { 
+            // Menambahkan data-id agar sistem tahu mana plan lama yang mau direplace
+            actionBtn = `<button data-id="${p.id}" data-toko="${p.kontakToko}" data-nama="${p.namaToko}" data-pic="${p.pic}" data-ket="${p.keterangan || ''}" onclick="recreatePlan(this)" class="btn btn-warning text-[10px] px-2 py-1 mr-2">⚠️ Recreate</button>` + actionBtn; 
+        }
+
+        let tData = db.toko.find(t => t.kodeKontak === p.kontakToko);
+        let statTokoAsli = tData ? tData.status : 'Unknown';
+
+        return `<tr>
+          <td class="text-xs text-[var(--text-muted)]">${p.kontakToko}</td>
+          <td class="font-bold text-[#fbc2eb]">${p.namaToko}</td>
+          <td><span class="badge border border-gray-500 text-gray-300 bg-transparent">${statTokoAsli}</span></td>
+          <td>${p.tujuanKunjungan}</td>
+          <td>${p.pic}</td>
+          <td>${p.planDate}</td>
+          <td>${p.actualDate||'-'}</td>
+          <td><span class="badge" style="background:${p.priority==='High'?'var(--danger)':p.priority==='Medium'?'#f59e0b':'#94a3b8'}; color:#1e1b2e">${p.priority}</span></td>
+          <td><span class="badge" style="background:${badgeColor}; color:${txtColor}">${p.status}</span></td>
+          <td class="text-xs max-w-xs truncate" title="${p.keterangan}">${p.keterangan}</td>
+          <td class="font-bold">${p.daysUntilDue}</td>
+          <td>${actionBtn}</td>
+        </tr>`;
+      }).join('');
+      
+      c.innerHTML = `
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-3xl font-bold">${vpLabel}</h1>
+          <div class="flex gap-2">
+            <select id="vpPICFilter" class="input-field mt-0 w-40 text-sm" onchange="window.vpFilters.pic = this.value; renderVisitPlan(document.getElementById('app-content'))">
+                <option value="">-- Semua PIC --</option>
+                ${optionsHtml(db.setup.PIC, fPIC)}
+            </select>
+            <button onclick="downloadVisitHistory()" class="btn btn-warning text-black shadow-md text-sm">📥 Download History</button>
+            <button onclick="formPlan()" class="btn btn-primary text-sm">+ Create ${vpLabel}</button>
+          </div>
+        </div>
+        <div class="card overflow-x-auto">
+          <table>
+            <thead>
+              <tr>
+                <th>KONTAK TOKO</th><th>NAMA TOKO</th><th>STATUS TOKO</th><th>TUJUAN KUNJUNGAN</th>
+                <th>PIC</th><th>PLAN DATE</th><th>ACTUAL DATE</th><th>PRIORITY</th>
+                <th>STATUS PLAN</th><th>KETERANGAN</th><th>DAYS DUE</th><th>ACTION</th>
+              </tr>
+            </thead>
+            <tbody>${rows.length > 0 ? rows : `<tr><td colspan="12" class="text-center text-[var(--text-muted)] py-4">Semua plan berstatus Selesai (Sembunyi) atau Kosong. Download history untuk melihat.</td></tr>`}</tbody>
+          </table>
+        </div>`;
+    }
+
+    window.downloadVisitHistory = function() {
+        let history = db.plan.filter(p => p.status === 'Visited' || p.status === 'Contacted');
+        if (history.length === 0) { alert('Belum ada data history kunjungan/contacted.'); return; }
+        
+        let csvContent = "data:text/csv;charset=utf-8,ID Plan,Kontak Toko,Nama Toko,Tujuan,PIC,Plan Date,Actual Date,Status,Keterangan\n";
+        history.forEach(p => {
+            let safeKet = p.keterangan ? p.keterangan.replace(/"/g, '""') : '';
+            let row = `${p.id},"${p.kontakToko}","${p.namaToko}","${p.tujuanKunjungan}",${p.pic},${p.planDate},${p.actualDate},${p.status},"${safeKet}"`;
+            csvContent += row + "\n";
+        });
+        
+        let encodedUri = encodeURI(csvContent);
+        let link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "history_visit_plan.csv");
+        document.body.appendChild(link);
+        link.click();
+    }
+
+    // Fungsi tambahan untuk memfilter Toko Select via input ketikan
+    window.filterTokoSelect = function(val) {
+        let filter = val.toLowerCase();
+        let select = document.getElementById('selectTokoPlan');
+        let html = '<option value="">Pilih Toko Master...</option>';
+        db.toko.forEach(t => {
+            let text = t.kodeKontak + ' - ' + t.namaToko;
+            if(text.toLowerCase().includes(filter)) {
+                html += `<option value="${t.kodeKontak}" data-nama="${t.namaToko}">${text}</option>`;
+            }
+        });
+        select.innerHTML = html;
+    }
+
+    // Form dengan parameter oldPlanId (jika ini hasil Recreate)
+    function formPlan(preToko = '', preNama = '', prePic = '', preKeterangan = '', oldPlanId = '') {
+      let vpLabel = window.currentUserRole === 'AER Thia' ? 'Contact Plan' : 'Visit Plan';
+      let tokoOptions = db.toko.map(t => `<option value="${t.kodeKontak}" data-nama="${t.namaToko}" ${t.kodeKontak === preToko ? 'selected':''}>${t.kodeKontak} - ${t.namaToko}</option>`).join('');
+      openModal(`
+        <h2 class="text-xl font-bold mb-4 text-[#a18cd1]">${preToko ? '⚠️ Recreate ' + vpLabel : 'Form Rencana Kunjungan'}</h2>
+        <form onsubmit="savePlan(event)">
+          <input type="hidden" name="oldPlanId" value="${oldPlanId}">
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="col-span-2">
+              <label class="text-xs text-[var(--text-muted)]">PILIH TOKO * (Ketik untuk mencari master)</label>
+              <input type="text" class="input-field border-[var(--accent)] mb-1" placeholder="🔍 Cari Nama Toko / Kontak ID..." oninput="filterTokoSelect(this.value)">
+              <select required id="selectTokoPlan" name="kontakToko" class="input-field border-[#a18cd1]" onchange="document.getElementById('vpNama').value = this.options[this.selectedIndex].dataset.nama || ''">
+                <option value="">Pilih Toko Master...</option>${tokoOptions}
+              </select>
+              <input type="hidden" name="namaToko" id="vpNama" value="${preNama}">
+            </div>
+            <div><label class="text-xs text-[var(--text-muted)]">TUJUAN KUNJUNGAN</label><select name="tujuanKunjungan" class="input-field">${optionsHtml(db.setup.AKTIFITAS)}</select></div>
+            <div><label class="text-xs text-[var(--text-muted)]">PIC JADWAL</label><select name="pic" class="input-field">${optionsHtml(db.setup.PIC, prePic)}</select></div>
+            <div><label class="text-xs">NEW PLAN DATE *</label><input required type="date" name="planDate" class="input-field border-[var(--accent)]"></div>
+            <div><label class="text-xs">PRIORITY</label><select name="priority" class="input-field"><option>High</option><option>Medium</option><option>Low</option></select></div>
+            <div class="col-span-2"><label class="text-xs">KETERANGAN</label>
+              <input name="keterangan" class="input-field" value="${preKeterangan || ''}">
+            </div>
+          </div>
+          <div class="flex gap-2 pt-2 border-t border-[var(--border)]"><button type="button" onclick="closeModal()" class="btn btn-secondary">Batal</button><button type="submit" class="btn btn-primary flex-1">Simpan Rencana Visit</button></div>
+        </form>
+      `);
+    }
+
+    window.recreatePlan = function(btn) { 
+        formPlan(btn.dataset.toko, btn.dataset.nama, btn.dataset.pic, btn.dataset.ket, btn.dataset.id); 
+    }
+
+    function savePlan(e) { 
+      e.preventDefault(); 
+      let obj = Object.fromEntries(new FormData(e.target)); 
+      
+      let oldPlanId = obj.oldPlanId;
+      delete obj.oldPlanId;
+
+      obj.id = generateId('VP'); 
+      obj.actualDate = ''; 
+      obj.status = 'Scheduled'; 
+      let diff = Math.ceil((new Date(obj.planDate) - new Date(todayStr)) / (1000 * 60 * 60 * 24)); 
+      obj.daysUntilDue = diff; 
+      if (obj.planDate < todayStr) obj.status = 'Overdue'; 
+
+      // Logika mengubah plan lama menjadi Recreated sehingga hilang dari list
+      if (oldPlanId) {
+          let oldPlanIndex = db.plan.findIndex(p => p.id === oldPlanId);
+          if (oldPlanIndex > -1) {
+              db.plan[oldPlanIndex].status = 'Recreated';
+              db.plan[oldPlanIndex].keterangan = 'Direcreate ke jadwal baru: ' + obj.id;
+          }
+      }
+
+      db.plan.push(obj); 
+      setDB('db_plan', db.plan); 
+      closeModal(); 
+      renderPage('visitplan'); 
+    }
+
+    // =========================================================================
+    // 7. AKTIFITAS (LOG)
+    // =========================================================================
+    function renderAktifitas(c) {
+      let isManager = window.currentUserRole === 'Sales Manager';
+      let fJenis = window.actFilters.jenis;
+
+      // Filter berdasarkan Jenis Kunjungan
+      let filteredAktifitas = db.aktifitas.filter(a => {
+          if (fJenis && a.jenisKunjungan !== fJenis) return false;
+          return true;
+      });
+
+      let rows = filteredAktifitas.map(a => `<tr>
+        <td class="text-xs text-[var(--text-muted)]">${a.visitId || '-'}</td>
+        <td class="text-xs">${a.kontakToko}</td>
+        <td class="font-bold text-[var(--accent)]">${a.namaToko}</td>
+        <td>${a.tanggalKunjungan}</td>
+        <td class="text-xs">${a.orderKe || '-'}</td>
+        <td class="text-xs">${a.jenisKunjungan || '-'}</td>
+        <td><span class="badge" style="background:var(--purple-grad); color:#1e1b2e">${a.aktifitas}</span></td>
+        <td class="text-xs">${a.kategoriSampling || '-'}</td>
+        <td class="text-xs">${a.sampleDescription || '-'}</td>
+        <td class="text-xs">${a.size || '-'}</td>
+        <td class="text-[var(--danger)] font-bold">${a.keluhanFeedback}</td>
+        <td><a href="${a.linkFoto}" target="_blank" class="text-blue-400 underline text-xs">${a.linkFoto ? 'Lihat Foto' : '[KOSONG]'}</a></td>
+        <td><span class="badge ${a.linkTersedia === 'Melampirkan' ? 'bg-green-500' : 'bg-red-500'} text-white">${a.linkTersedia}</span></td>
+        <td class="text-xs max-w-xs truncate" title="${a.keterangan}">${a.keterangan}</td>
+        <td><span class="badge" style="background:var(--border); color:#fff">${a.status}</span></td>
+        <td>${isManager ? `<button onclick="delAktifitas('${a.id}')" class="text-xs text-[var(--danger)] font-bold">Del</button>` : ''}</td>
+      </tr>`).join('');
+      
+      c.innerHTML = `
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-3xl font-bold">Aktifitas</h1>
+          <div class="flex gap-2">
+            <select class="input-field mt-0 w-48 text-sm" onchange="window.actFilters.jenis = this.value; renderAktifitas(document.getElementById('app-content'))">
+                <option value="">-- Semua Jenis Kunjungan --</option>
+                ${optionsHtml(db.setup.JENIS_KUNJUNGAN, fJenis)}
+            </select>
+            <button onclick="formAktifitas()" class="btn btn-primary">+ Lapor Aktifitas Visit</button>
+          </div>
+        </div>
+        <div class="card overflow-x-auto">
+          <table>
+            <thead>
+              <tr>
+                <th>VISIT ID</th><th>KONTAK TOKO</th><th>NAMA TOKO</th><th>TANGGAL KUNJUNGAN</th>
+                <th>ORDER KE</th><th>JENIS KUNJUNGAN</th><th>AKTIFITAS</th><th>KATEGORI SAMPLING</th>
+                <th>SAMPLE DESCRIPTION</th><th>SIZE</th><th>KELUHAN & FEEDBACK</th><th>LINK FOTO</th>
+                <th>STATUS FOTO</th><th>KETERANGAN</th><th>STATUS</th><th>ACT</th>
+              </tr>
+            </thead>
+            <tbody>${rows.length > 0 ? rows : `<tr><td colspan="16" class="text-center text-[var(--text-muted)] py-4">Belum ada aktifitas log.</td></tr>`}</tbody>
+          </table>
+        </div>`;
+    }
+
+    function formAktifitas() {
+      let planOptions = db.plan.filter(p=>p.status === 'Scheduled' || p.status === 'Overdue').map(p => `<option value="${p.id}" data-kontak="${p.kontakToko}" data-nama="${p.namaToko}">${p.planDate} | ${p.namaToko} - ${p.tujuanKunjungan}</option>`).join('');
+      openModal(`
+        <h2 class="text-xl font-bold mb-4 text-[var(--accent)]">Laporan Hasil Visit</h2>
+        <form onsubmit="saveAktifitas(event)">
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="col-span-2"><label class="text-xs">PILIH JADWAL PLAN *</label>
+              <select required name="visitId" class="input-field border-[var(--accent)]" onchange="let opt = this.options[this.selectedIndex]; document.getElementById('actKontak').value = opt.dataset.kontak; document.getElementById('actNama').value = opt.dataset.nama; let tData = db.toko.find(t=>t.kodeKontak===opt.dataset.kontak); if(tData){document.getElementById('actOrderKe').value=tData.orderKe||''; document.getElementById('actJenis').value=tData.jenisKunjungan||'';}">
+                <option value="">-- Pilih Jadwal Plan Terbuka --</option>${planOptions}
+              </select>
+              <input type="hidden" name="kontakToko" id="actKontak">
+              <input type="hidden" name="namaToko" id="actNama">
+            </div>
+            <div><label class="text-xs">TANGGAL KUNJUNGAN AKTUAL *</label><input type="date" required name="tanggalKunjungan" class="input-field" value="${todayStr}"></div>
+            <div><label class="text-xs text-[var(--text-muted)]">ORDER KE</label>
+              <select name="orderKe" id="actOrderKe" class="input-field">${optionsHtml(db.setup.ORDER_KE)}</select>
+            </div>
+            <div><label class="text-xs text-[var(--text-muted)]">JENIS KUNJUNGAN</label>
+              <select name="jenisKunjungan" id="actJenis" class="input-field">${optionsHtml(db.setup.JENIS_KUNJUNGAN)}</select>
+            </div>
+            <div><label class="text-xs text-[var(--text-muted)]">AKTIFITAS</label><select name="aktifitas" class="input-field">${optionsHtml(db.setup.AKTIFITAS)}</select></div>
+            <div><label class="text-xs text-[var(--text-muted)]">KATEGORI SAMPLING</label><select name="kategoriSampling" class="input-field">${optionsHtml(db.setup.KATEGORI_SAMPLING)}</select></div>
+            <div><label class="text-xs">SAMPLE DESCRIPTION</label><input name="sampleDescription" class="input-field" placeholder="Deskripsi sample..."></div>
+            <div><label class="text-xs">SIZE</label><input name="size" class="input-field" placeholder="Ukuran/Qty..."></div>
+            <div><label class="text-xs text-[var(--text-muted)]">KELUHAN & FEEDBACK</label><select name="keluhanFeedback" class="input-field">${optionsHtml(db.setup.KELUHAN_FEEDBACK)}</select></div>
+            <div><label class="text-xs">LINK FOTO KUNJUNGAN (Wajib / Poin -)</label><input name="linkFoto" class="input-field" placeholder="https://..."></div>
+            <div class="col-span-2"><label class="text-xs">KETERANGAN LOG</label><input name="keterangan" class="input-field"></div>
+            <div class="col-span-2 border-t border-[var(--border)] pt-2 mt-2">
+                <label class="text-xs font-bold text-yellow-500">PENJELASAN KELUHAN DETAIL</label>
+                <textarea name="penjelasanKeluhan" class="input-field" placeholder="Tuliskan keluhan lengkap dari customer (jika ada)..." rows="2"></textarea>
+            </div>
+            <div class="col-span-2">
+                <label class="text-xs font-bold text-[#10b981]">NEXT ACTION</label>
+                <input name="nextAction" class="input-field border-[#10b981]" placeholder="Tindakan selanjutnya (follow up, pengiriman ulang, dll)...">
+            </div>
+            <div><label class="text-xs text-[var(--text-muted)] mt-2">STATUS AKTIFITAS</label><select name="status" class="input-field">${optionsHtml(db.setup.STATUS_AKTIFITAS)}</select></div>
+          </div>
+          <div class="flex gap-2 pt-2 border-t border-[var(--border)]"><button type="button" onclick="closeModal()" class="btn btn-secondary">Batal</button><button type="submit" class="btn btn-primary flex-1">Simpan Laporan Visit</button></div>
+        </form>
+      `);
+    }
+
+    function saveAktifitas(e) {
+      e.preventDefault(); 
+      let obj = Object.fromEntries(new FormData(e.target)); 
+      obj.id = generateId('ACT');
+      
+      obj.linkTersedia = (obj.linkFoto && obj.linkFoto.trim() !== '') ? 'Melampirkan' : 'Tidak Melampirkan';
+      if (obj.linkTersedia === 'Tidak Melampirkan') { 
+          obj.keterangan = (obj.keterangan || '') + ' [MINUS POIN KINERJA: Bukti Link Foto Tidak Dilampirkan]'; 
+      }
+      
+      db.aktifitas.push(obj); 
+      setDB('db_aktifitas', db.aktifitas);
+
+      let pIdx = db.plan.findIndex(p => p.id === obj.visitId);
+      if(pIdx > -1) { 
+          let jenis = obj.jenisKunjungan || ''; 
+          
+          if(obj.status === 'Cancelled') { 
+              db.plan[pIdx].status = 'Cancelled'; 
+          } else if (jenis.includes('Call') || jenis.includes('Remote') || jenis.includes('WA')) { 
+              db.plan[pIdx].status = 'Contacted'; 
+          } else { 
+              db.plan[pIdx].status = 'Visited'; 
+          }
+          
+          db.plan[pIdx].actualDate = obj.tanggalKunjungan; 
+          db.plan[pIdx].daysUntilDue = 'Done'; 
+          setDB('db_plan', db.plan); 
+      }
+
+      let tIdx = db.toko.findIndex(t => t.kodeKontak === obj.kontakToko);
+      if(tIdx > -1) { 
+          db.toko[tIdx].lastVisit = obj.tanggalKunjungan; 
+          setDB('db_toko', db.toko); 
+      }
+      
+      closeModal(); 
+      renderPage('aktifitas');
+    }
+
+    // =========================================================================
+    // 8. INTELEJEN REPORT
+    // =========================================================================
+    function renderIntelejen(c) {
+      let isManager = window.currentUserRole === 'Sales Manager';
+      let rows = db.intel.map(i => `<tr>
+        <td>${i.date}</td>
+        <td class="text-xs">${i.kontakToko}</td>
+        <td class="font-bold">${i.namaToko}</td>
+        <td class="text-[#ff9a9e] font-bold">${i.kompetitor || '-'}</td>
+        <td>${i.aktivitasKompetitor}</td>
+        <td class="text-xs max-w-xs">${i.keteranganDetail}</td>
+        <td>${isManager ? `<button onclick="delIntel('${i.id}')" class="text-xs text-[var(--danger)] font-bold">Del</button>` : ''}</td>
+      </tr>`).join('');
+      c.innerHTML = `
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-3xl font-bold">Intelejen Report</h1>
+          <button onclick="formIntel()" class="btn btn-primary">+ Add Report Kompetitor</button>
+        </div>
+        <div class="card overflow-x-auto">
+          <table>
+            <thead>
+              <tr>
+                <th>DATE</th><th>KONTAK TOKO</th><th>NAMA TOKO</th><th>KOMPETITOR</th>
+                <th>AKTIVITAS KOMPETITOR</th><th>KETERANGAN DETAIL</th><th>ACT</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
+    }
+
+    function formIntel() {
+      let tokoOptions = db.toko.map(t => `<option value="${t.kodeKontak}" data-nama="${t.namaToko}">${t.kodeKontak} - ${t.namaToko}</option>`).join('');
+      openModal(`
+        <h2 class="text-xl font-bold mb-4 text-[#a18cd1]">Form Intelejen Kompetitor</h2>
+        <form onsubmit="saveIntel(event)">
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div><label class="text-xs">DATE *</label><input type="date" required name="date" class="input-field" value="${todayStr}"></div>
+            <div><label class="text-xs text-[var(--text-muted)]">PILIH KONTAK TOKO *</label>
+              <select required name="kontakToko" class="input-field" onchange="document.getElementById('intNama').value = this.options[this.selectedIndex].dataset.nama">
+                <option value="">Pilih Toko...</option>${tokoOptions}
+              </select>
+              <input type="hidden" name="namaToko" id="intNama">
+            </div>
+            <div><label class="text-xs text-[var(--text-muted)]">NAMA KOMPETITOR</label><select name="kompetitor" class="input-field">${optionsHtml(db.setup.KOMPETITOR)}</select></div>
+            <div><label class="text-xs text-[var(--text-muted)]">AKTIVITAS KOMPETITOR</label><select name="aktivitasKompetitor" class="input-field">${optionsHtml(db.setup.JENIS_AKTIVITAS_KOMPETITOR)}</select></div>
+            <div class="col-span-2"><label class="text-xs">KETERANGAN DETAIL</label><input name="keteranganDetail" class="input-field" required></div>
+          </div>
+          <div class="flex gap-2 pt-2 border-t border-[var(--border)]"><button type="button" onclick="closeModal()" class="btn btn-secondary">Batal</button><button type="submit" class="btn btn-primary flex-1">Simpan Laporan Intel</button></div>
+        </form>
+      `);
+    }
+    function saveIntel(e) { e.preventDefault(); let obj = Object.fromEntries(new FormData(e.target)); obj.id = generateId('INT'); db.intel.push(obj); setDB('db_intel', db.intel); closeModal(); renderPage('intelejen'); }
+
+    // Memuat saat pertama kali direfresh
+    window.onload = () => { applyRoleRestrictions(loggedInRole); };
+  </script>
+</body>
+</html>
