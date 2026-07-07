@@ -369,18 +369,16 @@
           return true;
       });
 
+     // =========================
+      // TOTAL TOKO (ALL RAW DATA)
       // =========================
-      // TOTAL TOKO (FIXED KPI - MURNI CONTACT ID)
-      // =========================
-      // Manager melihat semua, Sales melihat area mereka sendiri.
       const masterToko = isManager ? db.toko : db.toko.filter(t => t.pic === myPIC);
 
-      // Murni menghitung ID unik tanpa mempedulikan status Inactive/Active
-      let kpi_tokoAktif = new Set(
-          masterToko
-              .map(t => String(t.contactId || "").trim())
-              .filter(id => id !== "")
-      ).size;
+      // Menggunakan .length untuk menghitung total baris, 
+      // sehingga ID yang duplikat di spreadsheet tetap terhitung.
+      let kpi_tokoAktif = masterToko
+          .map(t => String(t.contactId || "").trim())
+          .filter(id => id !== "").length;
 
       let c_visited = fPlanCombined.filter(p=>p.status==='Visited').length;
       let c_contacted = fPlanCombined.filter(p=>p.status==='Contacted').length;
