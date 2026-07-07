@@ -6,7 +6,7 @@
 // =============================================================================
 
 // >>> GANTI dengan URL Web App hasil Deploy dari Code.gs <<<
-const API_URL = 'PASTE_URL_WEB_APP_APPS_SCRIPT_DISINI';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxXwrRNlkJC68_cgnzizHTXGl-iW_7jL5h8rWTbsbAr8SjS1dRX2rCHS0ZIpJgq0gCF_Q/exec';
 
 // Pemetaan key lama (localStorage) -> nama sheet di Code.gs
 const KEY_TO_SHEET = {
