@@ -388,14 +388,11 @@ let filteredToko = db.toko.filter(t => {
 // User lain menghitung dari toko yang menjadi hak aksesnya
 const sourceTokoKPI = isManager ? db.toko : filteredToko;
 
-let kpi_tokoAktif = sourceTokoKPI.filter(t => {
-
-    return (
-        t.status !== 'Inactive' &&
-        t.status !== 'Non Aktif (Nomer Tidak dapat dihubungi)'
-    );
-
-}).length;
+let kpi_tokoAktif = new Set(
+    filteredToko
+        .map(t => String(t.kodeKontak || "").trim())
+        .filter(id => id !== "")
+).size;
 
       let c_visited = fPlanCombined.filter(p=>p.status==='Visited').length;
       let c_contacted = fPlanCombined.filter(p=>p.status==='Contacted').length;
