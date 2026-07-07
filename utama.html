@@ -477,6 +477,24 @@
         </div>
 
         <div class="card flex flex-col shadow-md mt-6">
+            <h3 class="font-bold text-sm mb-4 text-[#a18cd1]">LAPORAN KOMPETITOR TERBARU (5 Terakhir)</h3>
+            <div class="overflow-x-auto">
+            <table>
+                <thead><tr><th>TANGGAL</th><th>NAMA TOKO</th><th>PIC</th><th>KOMPETITOR</th><th>KETERANGAN DETAIL</th></tr></thead>
+                <tbody>
+                  ${fIntelCombined.length > 0 ? fIntelCombined.slice(-5).reverse().map(i => `<tr>
+                    <td>${i.date}</td>
+                    <td class="font-bold text-[var(--accent)]">${i.namaToko}</td>
+                    <td class="font-bold text-[#fbc2eb]">${i.pic || '-'}</td>
+                    <td class="text-[#ff9a9e] font-bold">${i.kompetitor || '-'}</td>
+                    <td class="text-xs whitespace-normal max-w-xs break-words">${i.keteranganDetail || '-'}</td>
+                  </tr>`).join('') : `<tr><td colspan="5" class="text-center text-[var(--text-muted)] py-4">Belum ada laporan intelejen.</td></tr>`}
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <div class="card flex flex-col shadow-md mt-6">
             <h3 class="font-bold text-sm mb-4 text-[#ff9a9e]">TAB KELUHAN & NEXT ACTION</h3>
             <div class="overflow-x-auto">
             <table>
