@@ -161,6 +161,33 @@
       return match ? parseInt(match[0], 10) : 0;
     }
 
+    // Target bulanan per sales (Visited / Remote-WA), disimpan di db.setup.TARGET_VISITED
+    // dan db.setup.TARGET_REMOTE sebagai list string "NamaPIC:angka". Diedit manual oleh
+    // Sales Manager lewat halaman Setup, otomatis tersimpan ke Google Sheet (sheet Setup).
+    function getSalesTargetMap(type) {
+      // type: 'VISITED' atau 'REMOTE'
+      let key = type === 'REMOTE' ? 'TARGET_REMOTE' : 'TARGET_VISITED';
+      let map = {};
+      (db.setup[key] || []).forEach(row => {
+        let parts = String(row).split(':');
+        if (parts.length >= 2) map[parts[0].trim()] = parseInt(parts[1], 10) || 0;
+      });
+      return map;
+    }
+
+    function getSalesTarget(type, picName) {
+      let map = getSalesTargetMap(type);
+      if (picName) return map[picName] || 0;
+      // Tidak ada filter PIC (Manager lihat "Semua PIC") -> jumlahkan semua sales
+      return Object.values(map).reduce((a, b) => a + b, 0);
+    }
+
+    function saveSalesTargetMap(type, mapObj) {
+      let key = type === 'REMOTE' ? 'TARGET_REMOTE' : 'TARGET_VISITED';
+      db.setup[key] = Object.keys(mapObj).map(pic => `${pic}:${mapObj[pic]}`);
+      setDB('db_setup', db.setup);
+    }
+
     function normalizePlanStatus() {
         db.plan.forEach(p => {
             if(p.status !== 'Visited' && p.status !== 'Contacted' && p.status !== 'Cancelled' && p.status !== 'Recreated') {
@@ -343,16 +370,26 @@
       });
 
       let kpi_tokoAktif = filteredToko.filter(t => t.status !== 'Inactive' && t.status !== 'Non Aktif (Nomer Tidak dapat dihubungi)').length;
-      let kpi_targetKunjungan = filteredToko.reduce((sum, t) => sum + parseTargetKunjungan(t.targetKunjungan), 0);
-      
+
       let c_visited = fPlanCombined.filter(p=>p.status==='Visited').length;
       let c_contacted = fPlanCombined.filter(p=>p.status==='Contacted').length;
       let c_scheduled = fPlanCombined.filter(p=>p.status==='Scheduled').length;
       let c_overdue = fPlanCombined.filter(p=>p.status==='Overdue').length;
       let c_cancelled = fPlanCombined.filter(p=>p.status==='Cancelled').length;
-      
+
+      // Target Kunjungan per Bulan (Visited) & Target Remote/WA (Contacted) -> kuota tetap
+      // per sales (Ali/Thia), diatur manual oleh Sales Manager di halaman Setup.
+      let kpi_targetVisited = getSalesTarget('VISITED', fPIC);
+      let kpi_targetRemote = getSalesTarget('REMOTE', fPIC);
+
+      let kpi_realisasiVisited = c_visited;
+      let kpi_realisasiRemote = c_contacted;
+
+      let kpi_persentaseVisited = kpi_targetVisited > 0 ? Math.round((kpi_realisasiVisited / kpi_targetVisited) * 100) : 0;
+      let kpi_persentaseRemote = kpi_targetRemote > 0 ? Math.round((kpi_realisasiRemote / kpi_targetRemote) * 100) : 0;
+
+      // Total gabungan (dipakai chart & referensi lama)
       let kpi_realisasi = c_visited + c_contacted;
-      let kpi_persentase = kpi_targetKunjungan > 0 ? Math.round((kpi_realisasi / kpi_targetKunjungan) * 100) : 0;
 
       let compData = {}; fIntelCombined.forEach(i => { let k = i.kompetitor || 'Unknown'; if(k) compData[k] = (compData[k] || 0) + 1; });
       let issueData = {}; fAktifitasCombined.forEach(a => { if(a.keluhanFeedback && a.keluhanFeedback !== 'Tidak ada keluhan') issueData[a.keluhanFeedback] = (issueData[a.keluhanFeedback] || 0) + 1; });
@@ -386,14 +423,20 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div class="card border-t-4 border-[#a18cd1] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TOTAL TOKO AKTIF</p><h2 class="text-3xl font-bold mt-1 text-white">${kpi_tokoAktif}</h2></div>
             <div class="card border-t-4 border-[#a18cd1] shadow-md">
-              <p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TARGET MASTER KUNJUNGAN</p>
-              <h2 class="text-3xl font-bold mt-1 text-[#fbc2eb]">${kpi_targetKunjungan}</h2>
+              <p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TARGET KUNJUNGAN PER BULAN</p>
+              <h2 class="text-3xl font-bold mt-1 text-[#fbc2eb]">${kpi_targetVisited}</h2>
             </div>
-            <div class="card border-t-4 border-[var(--accent)] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">REALISASI (VISIT + CONTACTED)</p><h2 class="text-3xl font-bold mt-1 text-[var(--accent)]">${kpi_realisasi}</h2></div>
-            <div class="card border-t-4 border-[var(--accent)] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">PERSENTASE PENCAPAIAN</p><h2 class="text-3xl font-bold mt-1 ${kpi_persentase >= 100 ? 'text-green-400' : 'text-yellow-400'}">${kpi_persentase}%</h2></div>
+            <div class="card border-t-4 border-[var(--accent)] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">REALISASI VISITED</p><h2 class="text-3xl font-bold mt-1 text-[var(--accent)]">${kpi_realisasiVisited}</h2></div>
+            <div class="card border-t-4 border-[var(--accent)] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">% PENCAPAIAN VISITED</p><h2 class="text-3xl font-bold mt-1 ${kpi_persentaseVisited >= 100 ? 'text-green-400' : 'text-yellow-400'}">${kpi_persentaseVisited}%</h2></div>
+        </div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="card border-t-4 border-[#ff9a9e] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TARGET REMOTE/WA PER BULAN</p><h2 class="text-3xl font-bold mt-1 text-[#ff9a9e]">${kpi_targetRemote}</h2></div>
+            <div class="card border-t-4 border-[#ff9a9e] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">REALISASI REMOTE/WA (CONTACTED)</p><h2 class="text-3xl font-bold mt-1 text-[#ff9a9e]">${kpi_realisasiRemote}</h2></div>
+            <div class="card border-t-4 border-[#ff9a9e] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">% PENCAPAIAN REMOTE/WA</p><h2 class="text-3xl font-bold mt-1 ${kpi_persentaseRemote >= 100 ? 'text-green-400' : 'text-yellow-400'}">${kpi_persentaseRemote}%</h2></div>
+            <div class="card border-t-4 border-slate-500 shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TOTAL REALISASI (VISITED+REMOTE)</p><h2 class="text-3xl font-bold mt-1 text-white">${kpi_realisasi}</h2></div>
         </div>
 
         <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
@@ -473,9 +516,33 @@
       let html = `<div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold">Setup Master Data</h1>
         <button onclick="addMasterCategory()" class="btn btn-warning text-black shadow-lg">+ Tambah Kategori Tabel Master</button>
-      </div><div class="grid grid-cols-2 lg:grid-cols-3 gap-6">`;
-      
+      </div>`;
+
+      if (isManager) {
+        let vMap = getSalesTargetMap('VISITED');
+        let rMap = getSalesTargetMap('REMOTE');
+        let picList = db.setup.PIC || [];
+        html += `<div class="card mb-6 border-t-4 border-[#fbc2eb] shadow-md">
+          <h3 class="font-bold text-[#fbc2eb] text-lg mb-1">🎯 Target Bulanan Sales</h3>
+          <p class="text-xs text-[var(--text-muted)] mb-4">Diedit oleh Sales Manager. Otomatis dipakai di kartu "Target Kunjungan per Bulan" &amp; "Target Remote/WA" di Dashboard, dan tersimpan ke Google Sheet (sheet Setup).</p>
+          <form onsubmit="saveTargetForm(event)">
+            <table class="mb-4"><thead><tr><th>SALES (PIC)</th><th>TARGET VISITED / BULAN</th><th>TARGET REMOTE/WA / BULAN</th></tr></thead>
+            <tbody>
+              ${picList.map(pic => `<tr>
+                <td class="font-bold text-[var(--accent)]">${pic}</td>
+                <td><input type="number" min="0" class="input-field" name="visited_${pic}" value="${vMap[pic] || 0}"></td>
+                <td><input type="number" min="0" class="input-field" name="remote_${pic}" value="${rMap[pic] || 0}"></td>
+              </tr>`).join('')}
+            </tbody></table>
+            <button type="submit" class="btn btn-primary">💾 Simpan Target</button>
+          </form>
+        </div>`;
+      }
+
+      html += `<div class="grid grid-cols-2 lg:grid-cols-3 gap-6">`;
+
       for(let key in db.setup) {
+        if (key === 'TARGET_VISITED' || key === 'TARGET_REMOTE') continue; // dikelola lewat form khusus di atas
         let displayKey = key.replace(/_/g, ' ');
         html += `<div class="card flex flex-col h-full"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-[var(--accent)] text-lg">${displayKey}</h3><button onclick="addSetup('${key}')" class="text-xs btn-primary px-3 py-1 rounded shadow">+ Add</button></div><ul class="text-sm flex-1 overflow-y-auto max-h-60 pr-2">`;
         if (!db.setup[key] || db.setup[key].length === 0) { html += `<li class="text-[var(--text-muted)] italic">Belum ada data</li>`; }
@@ -483,6 +550,21 @@
         html += `</ul></div>`;
       }
       c.innerHTML = html + `</div>`;
+    }
+
+    function saveTargetForm(e) {
+      e.preventDefault();
+      let fd = new FormData(e.target);
+      let vMap = {}; let rMap = {};
+      let picList = db.setup.PIC || [];
+      picList.forEach(pic => {
+        vMap[pic] = parseInt(fd.get(`visited_${pic}`), 10) || 0;
+        rMap[pic] = parseInt(fd.get(`remote_${pic}`), 10) || 0;
+      });
+      saveSalesTargetMap('VISITED', vMap);
+      saveSalesTargetMap('REMOTE', rMap);
+      alert('Target bulanan berhasil disimpan.');
+      renderPage('setup');
     }
 
     window.addMasterCategory = function() {
