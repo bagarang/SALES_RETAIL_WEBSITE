@@ -370,17 +370,14 @@
       });
 
       // =========================
-      // TOTAL TOKO AKTIF (FIXED KPI)
+      // TOTAL TOKO (FIXED KPI - MURNI CONTACT ID)
       // =========================
-      // Manager menggunakan SELURUH master db.toko (kebal dari filter dashboard fPIC/fAgen)
-      // Sales hanya menggunakan master db.toko milik myPIC mereka.
+      // Manager melihat semua, Sales melihat area mereka sendiri.
       const masterToko = isManager ? db.toko : db.toko.filter(t => t.pic === myPIC);
 
+      // Murni menghitung ID unik tanpa mempedulikan status Inactive/Active
       let kpi_tokoAktif = new Set(
           masterToko
-              // Kembalikan filter status aktif agar pas dengan jumlah 196 di spreadsheet
-              .filter(t => t.status !== 'Inactive' && t.status !== 'Non Aktif (Nomer Tidak dapat dihubungi)')
-              // Gunakan contactId sesuai instruksi, bukan kodeKontak
               .map(t => String(t.contactId || "").trim())
               .filter(id => id !== "")
       ).size;
