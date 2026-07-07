@@ -360,7 +360,7 @@
 
       let fPlanCombined = db.plan.filter(p => baseF_Plan(p) && (!fPIC || p.pic === fPIC) && (!fAgen || (tokoMap[p.kontakToko] && tokoMap[p.kontakToko].orderKe === fAgen)));
       let fAktifitasCombined = db.aktifitas.filter(a => baseF_Akt(a) && (!fPIC || (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].pic === fPIC)) && (!fAgen || (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].orderKe === fAgen)));
-      let fIntelCombined = db.intel.filter(i => baseF_Intel(i) && (!fPIC || (tokoMap[i.kontakToko] && tokoMap[i.kontakToko].pic === fPIC)) && (!fAgen || (tokoMap[i.kontakToko] && tokoMap[i.kontakToko].orderKe === fAgen)));
+      let fIntelCombined = db.intel.filter(i => baseF_Intel(i) && (!fPIC || (i.pic ? i.pic === fPIC : (tokoMap[i.kontakToko] && tokoMap[i.kontakToko].pic === fPIC))) && (!fAgen || (tokoMap[i.kontakToko] && tokoMap[i.kontakToko].orderKe === fAgen)));
       
       let filteredToko = db.toko.filter(t => {
           if(fToko && t.kodeKontak !== fToko) return false;
@@ -1000,8 +1000,11 @@
     function renderIntelejen(c) {
       let filteredIntel = db.intel.filter(i => {
           if (!isManager) {
-              let tData = db.toko.find(t => t.kodeKontak === i.kontakToko);
-              if (!tData || tData.pic !== myPIC) return false;
+              if (i.pic) { if (i.pic !== myPIC) return false; }
+              else {
+                  let tData = db.toko.find(t => t.kodeKontak === i.kontakToko);
+                  if (!tData || tData.pic !== myPIC) return false;
+              }
           }
           return true;
       });
@@ -1010,9 +1013,10 @@
         <td>${i.date}</td>
         <td class="text-xs">${i.kontakToko}</td>
         <td class="font-bold">${i.namaToko}</td>
+        <td class="text-[#fbc2eb] font-bold">${i.pic || '-'}</td>
         <td class="text-[#ff9a9e] font-bold">${i.kompetitor || '-'}</td>
         <td>${i.aktivitasKompetitor}</td>
-        <td class="text-xs max-w-xs">${i.keteranganDetail}</td>
+        <td class="text-xs whitespace-normal max-w-xs break-words">${i.keteranganDetail}</td>
         <td>${isManager ? `<button onclick="delIntel('${i.id}')" class="text-xs text-[var(--danger)] font-bold">Del</button>` : ''}</td>
       </tr>`).join('');
       c.innerHTML = `
@@ -1024,11 +1028,11 @@
           <table>
             <thead>
               <tr>
-                <th>DATE</th><th>KONTAK TOKO</th><th>NAMA TOKO</th><th>KOMPETITOR</th>
+                <th>DATE</th><th>KONTAK TOKO</th><th>NAMA TOKO</th><th>PIC</th><th>KOMPETITOR</th>
                 <th>AKTIVITAS KOMPETITOR</th><th>KETERANGAN DETAIL</th><th>ACT</th>
               </tr>
             </thead>
-            <tbody>${rows.length > 0 ? rows : `<tr><td colspan="7" class="text-center text-[var(--text-muted)] py-4">Belum ada report intelejen.</td></tr>`}</tbody>
+            <tbody>${rows.length > 0 ? rows : `<tr><td colspan="8" class="text-center text-[var(--text-muted)] py-4">Belum ada report intelejen.</td></tr>`}</tbody>
           </table>
         </div>`;
     }
@@ -1036,7 +1040,10 @@
     function formIntel() {
       let filteredTokoForIntel = isManager ? db.toko : db.toko.filter(t => t.pic === myPIC);
       let tokoOptions = filteredTokoForIntel.map(t => `<option value="${t.kodeKontak}" data-nama="${t.namaToko}">${t.kodeKontak} - ${t.namaToko}</option>`).join('');
-      
+      let picSelectHtml = isManager ?
+            `<select required name="pic" class="input-field">${optionsHtml(db.setup.PIC)}</select>` :
+            `<input name="pic" class="input-field text-gray-400" value="${myPIC}" readonly>`;
+
       openModal(`
         <h2 class="text-xl font-bold mb-4 text-[#a18cd1]">Form Intelejen Kompetitor</h2>
         <form onsubmit="saveIntel(event)">
@@ -1048,15 +1055,20 @@
               </select>
               <input type="hidden" name="namaToko" id="intNama">
             </div>
+            <div><label class="text-xs text-[var(--text-muted)]">PIC *</label>${picSelectHtml}</div>
             <div><label class="text-xs text-[var(--text-muted)]">NAMA KOMPETITOR</label><select name="kompetitor" class="input-field">${optionsHtml(db.setup.KOMPETITOR)}</select></div>
             <div><label class="text-xs text-[var(--text-muted)]">AKTIVITAS KOMPETITOR</label><select name="aktivitasKompetitor" class="input-field">${optionsHtml(db.setup.JENIS_AKTIVITAS_KOMPETITOR)}</select></div>
-            <div class="col-span-2"><label class="text-xs">KETERANGAN DETAIL</label><input name="keteranganDetail" class="input-field" required></div>
+            <div class="col-span-2">
+              <label class="text-xs">KETERANGAN DETAIL <span class="text-[var(--text-muted)]">(maks 150 karakter)</span></label>
+              <textarea name="keteranganDetail" class="input-field" required rows="3" maxlength="150" oninput="document.getElementById('intKetCounter').innerText = this.value.length + '/150'"></textarea>
+              <div id="intKetCounter" class="text-[10px] text-[var(--text-muted)] text-right mt-1">0/150</div>
+            </div>
           </div>
           <div class="flex gap-2 pt-2 border-t border-[var(--border)]"><button type="button" onclick="closeModal()" class="btn btn-secondary">Batal</button><button type="submit" class="btn btn-primary flex-1">Simpan Laporan Intel</button></div>
         </form>
       `);
     }
-    function saveIntel(e) { e.preventDefault(); let obj = Object.fromEntries(new FormData(e.target)); obj.id = generateId('INT'); db.intel.push(obj); setDB('db_intel', db.intel); closeModal(); renderPage('intelejen'); }
+    function saveIntel(e) { e.preventDefault(); let obj = Object.fromEntries(new FormData(e.target)); obj.id = generateId('INT'); obj.keteranganDetail = (obj.keteranganDetail || '').slice(0, 150); db.intel.push(obj); setDB('db_intel', db.intel); closeModal(); renderPage('intelejen'); }
 
     window.onload = async () => {
         showCloudStatus('⏳ Memuat data dari Google Sheet...');
