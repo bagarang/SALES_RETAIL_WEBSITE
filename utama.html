@@ -9,8 +9,6 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   
-  <!-- db_*.js dipertahankan HANYA sebagai fallback offline (jika Google Sheet/API
-       gagal diakses). Sumber data utama sekarang adalah Google Sheet lewat db-cloud.js -->
   <script src="db_setup.js"></script>
   <script src="db_toko.js"></script>
   <script src="db_plan.js"></script>
@@ -362,34 +360,22 @@
       let fAktifitasCombined = db.aktifitas.filter(a => baseF_Akt(a) && (!fPIC || (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].pic === fPIC)) && (!fAgen || (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].orderKe === fAgen)));
       let fIntelCombined = db.intel.filter(i => baseF_Intel(i) && (!fPIC || (i.pic ? i.pic === fPIC : (tokoMap[i.kontakToko] && tokoMap[i.kontakToko].pic === fPIC))) && (!fAgen || (tokoMap[i.kontakToko] && tokoMap[i.kontakToko].orderKe === fAgen)));
       
-      // ================= FILTER TOKO =================
 let filteredToko = db.toko.filter(t => {
-
-    // Sales Manager selalu melihat seluruh toko master
-    if (!isManager) {
-
-        // Filter otomatis berdasarkan PIC login
-        if (myPIC && t.pic !== myPIC) return false;
-
-    }
-
-    // Filter pilihan dashboard
-    if (fToko && t.kodeKontak !== fToko) return false;
-    if (fPIC && t.pic !== fPIC) return false;
-    if (fAgen && t.orderKe !== fAgen) return false;
-
+    if(fToko && t.kodeKontak !== fToko) return false;
+    if(fPIC && t.pic !== fPIC) return false;
+    if(fAgen && t.orderKe !== fAgen) return false;
     return true;
 });
 
-
-// ================= KPI TOKO AKTIF =================
-
-// Sales Manager menghitung dari seluruh master toko
-// User lain menghitung dari toko yang menjadi hak aksesnya
-const sourceTokoKPI = isManager ? db.toko : filteredToko;
+// =========================
+// TOTAL TOKO (MASTER DATA)
+// =========================
+const masterToko = isManager
+    ? db.toko
+    : db.toko.filter(t => t.pic === myPIC);
 
 let kpi_tokoAktif = new Set(
-    filteredToko
+    masterToko
         .map(t => String(t.kodeKontak || "").trim())
         .filter(id => id !== "")
 ).size;
@@ -565,7 +551,7 @@ let kpi_tokoAktif = new Set(
         let picList = db.setup.PIC || [];
         html += `<div class="card mb-6 border-t-4 border-[#fbc2eb] shadow-md">
           <h3 class="font-bold text-[#fbc2eb] text-lg mb-1">🎯 Target Bulanan Sales</h3>
-          <p class="text-xs text-[var(--text-muted)] mb-4">Diedit oleh Sales Manager. Otomatis dipakai di kartu "Target Kunjungan per Bulan" &amp; "Target Remote/WA" di Dashboard, dan tersimpan ke Google Sheet (sheet Setup).</p>
+          <p class="text-xs text-[var(--text-muted)] mb-4">Diedit oleh Sales Manager. Otomatis dipakai di kartu "Target Kunjungan per Bulan" & "Target Remote/WA" di Dashboard, dan tersimpan ke Google Sheet (sheet Setup).</p>
           <form onsubmit="saveTargetForm(event)">
             <table class="mb-4"><thead><tr><th>SALES (PIC)</th><th>TARGET VISITED / BULAN</th><th>TARGET REMOTE/WA / BULAN</th></tr></thead>
             <tbody>
