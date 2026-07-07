@@ -362,14 +362,40 @@
       let fAktifitasCombined = db.aktifitas.filter(a => baseF_Akt(a) && (!fPIC || (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].pic === fPIC)) && (!fAgen || (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].orderKe === fAgen)));
       let fIntelCombined = db.intel.filter(i => baseF_Intel(i) && (!fPIC || (i.pic ? i.pic === fPIC : (tokoMap[i.kontakToko] && tokoMap[i.kontakToko].pic === fPIC))) && (!fAgen || (tokoMap[i.kontakToko] && tokoMap[i.kontakToko].orderKe === fAgen)));
       
-      let filteredToko = db.toko.filter(t => {
-          if(fToko && t.kodeKontak !== fToko) return false;
-          if(fPIC && t.pic !== fPIC) return false;
-          if(fAgen && t.orderKe !== fAgen) return false;
-          return true;
-      });
+      // ================= FILTER TOKO =================
+let filteredToko = db.toko.filter(t => {
 
-      let kpi_tokoAktif = filteredToko.filter(t => t.status !== 'Inactive' && t.status !== 'Non Aktif (Nomer Tidak dapat dihubungi)').length;
+    // Sales Manager selalu melihat seluruh toko master
+    if (!isManager) {
+
+        // Filter otomatis berdasarkan PIC login
+        if (myPIC && t.pic !== myPIC) return false;
+
+    }
+
+    // Filter pilihan dashboard
+    if (fToko && t.kodeKontak !== fToko) return false;
+    if (fPIC && t.pic !== fPIC) return false;
+    if (fAgen && t.orderKe !== fAgen) return false;
+
+    return true;
+});
+
+
+// ================= KPI TOKO AKTIF =================
+
+// Sales Manager menghitung dari seluruh master toko
+// User lain menghitung dari toko yang menjadi hak aksesnya
+const sourceTokoKPI = isManager ? db.toko : filteredToko;
+
+let kpi_tokoAktif = sourceTokoKPI.filter(t => {
+
+    return (
+        t.status !== 'Inactive' &&
+        t.status !== 'Non Aktif (Nomer Tidak dapat dihubungi)'
+    );
+
+}).length;
 
       let c_visited = fPlanCombined.filter(p=>p.status==='Visited').length;
       let c_contacted = fPlanCombined.filter(p=>p.status==='Contacted').length;
