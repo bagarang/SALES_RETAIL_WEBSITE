@@ -88,5 +88,15 @@ const INIT_SETUP = {
     'Pending',
     'In Progress',
     'Cancelled'
+  ],
+  // Target bulanan per sales, per jenis kunjungan. Format tiap item: "NamaPIC:angka".
+  // Diedit manual oleh Sales Manager lewat halaman Setup di web (tidak perlu ubah Code.gs).
+  TARGET_VISITED: [
+    'Ali:40',
+    'Thia:200'
+  ],
+  TARGET_REMOTE: [
+    'Ali:0',
+    'Thia:0'
   ]
 };
