@@ -6,7 +6,7 @@
 // =============================================================================
 
 // >>> GANTI dengan URL Web App hasil Deploy dari Code.gs <<<
-const API_URL = 'https://script.google.com/macros/s/AKfycbxXwrRNlkJC68_cgnzizHTXGl-iW_7jL5h8rWTbsbAr8SjS1dRX2rCHS0ZIpJgq0gCF_Q/exec';
+const API_URL = 'PASTE_URL_WEB_APP_APPS_SCRIPT_DISINI';
 
 // Pemetaan key lama (localStorage) -> nama sheet di Code.gs
 const KEY_TO_SHEET = {
@@ -23,7 +23,10 @@ async function cloudGetAll() {
     console.warn('API_URL belum diisi di db-cloud.js — memakai data offline (db_*.js).');
     return null;
   }
-  const res = await fetch(API_URL + '?action=getAll');
+  // cache: 'no-store' + timestamp unik supaya browser TIDAK pernah memakai hasil
+  // fetch lama (penting karena URL-nya selalu sama persis "?action=getAll" setiap
+  // kali, jadi tanpa ini browser/CDN bisa nyangkut di jumlah data yang lama).
+  const res = await fetch(API_URL + '?action=getAll&_ts=' + Date.now(), { cache: 'no-store' });
   if (!res.ok) throw new Error('Gagal fetch data: HTTP ' + res.status);
   const data = await res.json();
   if (data.error) throw new Error(data.error);
