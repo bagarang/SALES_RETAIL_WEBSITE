@@ -243,6 +243,16 @@
     function delToko(id) { if(confirm('Hapus Toko ini?')) { db.toko = db.toko.filter(t => t.contactId !== id); setDB('db_toko', db.toko); renderPage('daftartoko'); } }
     function delPlan(id) { if(confirm('Hapus Visit Plan ini?')) { db.plan = db.plan.filter(p => p.id !== id); setDB('db_plan', db.plan); renderPage('visitplan'); } }
     function delAktifitas(id) { if(confirm('Hapus Aktifitas ini?')) { db.aktifitas = db.aktifitas.filter(a => a.id !== id); setDB('db_aktifitas', db.aktifitas); renderPage('aktifitas'); } }
+
+    function htmlEscapeAttr(str) { return String(str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    window.updateNextAction = function(id, value) {
+      let idx = db.aktifitas.findIndex(a => a.id === id);
+      if (idx > -1) {
+        db.aktifitas[idx].nextAction = value;
+        setDB('db_aktifitas', db.aktifitas);
+      }
+    };
     function delIntel(id) { if(confirm('Hapus Report ini?')) { db.intel = db.intel.filter(i => i.id !== id); setDB('db_intel', db.intel); renderPage('intelejen'); } }
 
     window.resetFilters = function() { window.dashFilters = { start: '', end: '', pic: isManager ? '' : myPIC, agen: '', toko: '' }; renderPage('dashboard'); }
@@ -392,8 +402,20 @@
       let compData = {}; fIntelCombined.forEach(i => { let k = i.kompetitor || 'Unknown'; if(k) compData[k] = (compData[k] || 0) + 1; });
       let issueData = {}; fAktifitasCombined.forEach(a => { if(a.keluhanFeedback && a.keluhanFeedback !== 'Tidak ada keluhan') issueData[a.keluhanFeedback] = (issueData[a.keluhanFeedback] || 0) + 1; });
       let samplingData = {}; fAktifitasCombined.forEach(a => { if(a.kategoriSampling) samplingData[a.kategoriSampling] = (samplingData[a.kategoriSampling] || 0) + 1; });
-      let linkData = { 'Melampirkan': 0, 'Tidak Melampirkan': 0 };
-      fAktifitasCombined.forEach(a => { if(a.linkTersedia === 'Melampirkan') linkData['Melampirkan']++; else linkData['Tidak Melampirkan']++; });
+      // KEPATUHAN FOTO per PIC: ambil dari Tab Aktifitas (linkFoto/linkTersedia), dipecah per PIC (Ali/Thia/dst)
+      // Status dihitung ulang dari linkFoto kalau field linkTersedia kosong/tidak konsisten (data lama).
+      let lampiranByPIC = {};
+      db.setup.PIC.forEach(p => { lampiranByPIC[p] = { 'Melampirkan': 0, 'Tidak Melampirkan': 0 }; });
+      fAktifitasCombined.forEach(a => {
+        let picNama = (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].pic) || 'Lainnya';
+        if (!lampiranByPIC[picNama]) lampiranByPIC[picNama] = { 'Melampirkan': 0, 'Tidak Melampirkan': 0 };
+        let statusFotoA = (a.linkTersedia === 'Melampirkan' || a.linkTersedia === 'Tidak Melampirkan')
+          ? a.linkTersedia
+          : ((a.linkFoto && a.linkFoto.trim() !== '') ? 'Melampirkan' : 'Tidak Melampirkan');
+        lampiranByPIC[picNama][statusFotoA]++;
+      });
+      let picLampiranLabels = Object.keys(lampiranByPIC).filter(p => (lampiranByPIC[p]['Melampirkan'] + lampiranByPIC[p]['Tidak Melampirkan']) > 0);
+      if (picLampiranLabels.length === 0) picLampiranLabels = Object.keys(lampiranByPIC);
 
       let optToko = db.toko.filter(t => isManager || t.pic === myPIC)
                            .map(t => `<option value="${t.kodeKontak}" ${fToko === t.kodeKontak ? 'selected':''}>${t.namaToko}</option>`).join('');
@@ -507,7 +529,7 @@
                     <td>${a.tanggalKunjungan}</td>
                     <td class="text-[var(--danger)] font-bold">${a.keluhanFeedback || '-'}</td>
                     <td class="text-xs whitespace-normal max-w-xs">${a.keterangan || '-'}</td>
-                    <td class="text-xs whitespace-normal max-w-xs text-yellow-200">${a.nextAction || '-'}</td>
+                    <td class="text-xs whitespace-normal max-w-xs text-yellow-200">${isManager ? `<input type="text" class="input-field text-xs mt-0" style="min-width:180px" value="${htmlEscapeAttr(a.nextAction)}" placeholder="Isi next action..." onchange="updateNextAction('${a.id}', this.value); this.style.borderColor='#10b981'; setTimeout(()=>{this.style.borderColor='';}, 800);">` : (a.nextAction || '-')}</td>
                   </tr>`).join('') : `<tr><td colspan="5" class="text-center text-[var(--text-muted)] py-4">Tidak ada keluhan dengan aksi tercatat.</td></tr>`}
                 </tbody>
             </table>
@@ -522,7 +544,7 @@
         let optG = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: {color: '#f8fafc', font:{size:10}} } } };
         
         if(document.getElementById('chartKunjungan')) window.myCharts['chartKunjungan'] = new Chart(document.getElementById('chartKunjungan'), { type: 'doughnut', data: { labels: ['Visited', 'Contacted', 'Scheduled', 'Overdue', 'Cancelled'], datasets: [{ data: [c_visited, c_contacted, c_scheduled, c_overdue, c_cancelled], backgroundColor: ['#ff9a9e', '#fbc2eb', '#a18cd1', '#ef4444', '#94a3b8'], borderWidth: 0 }] }, options: optG });
-        if(document.getElementById('chartLampiran')) window.myCharts['chartLampiran'] = new Chart(document.getElementById('chartLampiran'), { type: 'doughnut', data: { labels: Object.keys(linkData), datasets: [{ data: Object.values(linkData), backgroundColor: ['#10b981', '#ef4444'], borderWidth: 0 }] }, options: optG });
+        if(document.getElementById('chartLampiran')) window.myCharts['chartLampiran'] = new Chart(document.getElementById('chartLampiran'), { type: 'bar', data: { labels: picLampiranLabels, datasets: [ { label: 'Melampirkan', data: picLampiranLabels.map(p => lampiranByPIC[p]['Melampirkan']), backgroundColor: '#10b981' }, { label: 'Tidak Melampirkan', data: picLampiranLabels.map(p => lampiranByPIC[p]['Tidak Melampirkan']), backgroundColor: '#ef4444' } ] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, ticks: {color: '#94a3b8'} }, y: { stacked: true, beginAtZero: true, ticks: {color: '#94a3b8'} } }, plugins: { legend: { position: 'bottom', labels: {color: '#f8fafc', font:{size:10}} } } } });
         if(document.getElementById('chartIssue')) window.myCharts['chartIssue'] = new Chart(document.getElementById('chartIssue'), { type: 'pie', data: { labels: Object.keys(issueData).length ? Object.keys(issueData) : ['Aman'], datasets: [{ data: Object.keys(issueData).length ? Object.values(issueData) : [1], backgroundColor: ['#fbc2eb', '#a18cd1', '#ff9a9e', '#ff7b82'], borderWidth: 0 }] }, options: optG });
         if(document.getElementById('chartSampling')) window.myCharts['chartSampling'] = new Chart(document.getElementById('chartSampling'), { type: 'polarArea', data: { labels: Object.keys(samplingData).length ? Object.keys(samplingData) : ['N/A'], datasets: [{ data: Object.keys(samplingData).length ? Object.values(samplingData) : [1], backgroundColor: ['rgba(255, 154, 158, 0.7)', 'rgba(161, 140, 209, 0.7)', 'rgba(251, 194, 235, 0.7)'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { display: false } } } });
         if(document.getElementById('chartKompetitor')) window.myCharts['chartKompetitor'] = new Chart(document.getElementById('chartKompetitor'), { type: 'bar', data: { labels: Object.keys(compData).length ? Object.keys(compData) : ['Belum Ada'], datasets: [{ label: 'Laporan', data: Object.keys(compData).length ? Object.values(compData) : [0], backgroundColor: '#a18cd1' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: {color: '#94a3b8'} }, x: { ticks: {color: '#94a3b8'} } }, plugins: { legend: { display: false } } } });
