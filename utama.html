@@ -369,7 +369,7 @@
       const baseF_Intel = i => { if(fStart && i.date < fStart) return false; if(fEnd && i.date > fEnd) return false; if(fToko && i.kontakToko !== fToko) return false; return true; };
 
       let fPlanCombined = db.plan.filter(p => baseF_Plan(p) && (!fPIC || p.pic === fPIC) && (!fAgen || (tokoMap[p.kontakToko] && tokoMap[p.kontakToko].orderKe === fAgen)));
-      let fAktifitasCombined = db.aktifitas.filter(a => baseF_Akt(a) && (!fPIC || (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].pic === fPIC)) && (!fAgen || (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].orderKe === fAgen)));
+      let fAktifitasCombined = db.aktifitas.filter(a => baseF_Akt(a) && (!fPIC || (a.pic ? a.pic === fPIC : (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].pic === fPIC))) && (!fAgen || (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].orderKe === fAgen)));
       let fIntelCombined = db.intel.filter(i => baseF_Intel(i) && (!fPIC || (i.pic ? i.pic === fPIC : (tokoMap[i.kontakToko] && tokoMap[i.kontakToko].pic === fPIC))) && (!fAgen || (tokoMap[i.kontakToko] && tokoMap[i.kontakToko].orderKe === fAgen)));
       
       // TOTAL TOKO AKTIF = base count total toko (COUNT baris contactId di tab Toko, sama seperti spreadsheet),
@@ -407,7 +407,7 @@
       let lampiranByPIC = {};
       db.setup.PIC.forEach(p => { lampiranByPIC[p] = { 'Melampirkan': 0, 'Tidak Melampirkan': 0 }; });
       fAktifitasCombined.forEach(a => {
-        let picNama = (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].pic) || 'Lainnya';
+        let picNama = a.pic || (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].pic) || 'Lainnya';
         if (!lampiranByPIC[picNama]) lampiranByPIC[picNama] = { 'Melampirkan': 0, 'Tidak Melampirkan': 0 };
         let statusFotoA = (a.linkTersedia === 'Melampirkan' || a.linkTersedia === 'Tidak Melampirkan')
           ? a.linkTersedia
@@ -911,11 +911,13 @@
         let statusFoto = (a.linkTersedia === 'Melampirkan' || a.linkTersedia === 'Tidak Melampirkan')
           ? a.linkTersedia
           : ((a.linkFoto && a.linkFoto.trim() !== '') ? 'Melampirkan' : 'Tidak Melampirkan');
+        let picAkt = a.pic || (db.toko.find(t => t.kodeKontak === a.kontakToko) || {}).pic || '-';
         return `<tr>
         <td class="text-xs text-[var(--text-muted)]">${a.visitId || '-'}</td>
         <td class="text-xs">${a.kontakToko}</td>
         <td class="font-bold text-[var(--accent)]">${a.namaToko}</td>
         <td>${a.tanggalKunjungan}</td>
+        <td class="font-bold text-[#fbc2eb]">${picAkt}</td>
         <td class="text-xs">${a.orderKe || '-'}</td>
         <td class="text-xs">${a.jenisKunjungan || '-'}</td>
         <td><span class="badge" style="background:var(--purple-grad); color:#1e1b2e">${a.aktifitas}</span></td>
@@ -946,13 +948,13 @@
           <table>
             <thead>
               <tr>
-                <th>VISIT ID</th><th>KONTAK TOKO</th><th>NAMA TOKO</th><th>TANGGAL KUNJUNGAN</th>
+                <th>VISIT ID</th><th>KONTAK TOKO</th><th>NAMA TOKO</th><th>TANGGAL KUNJUNGAN</th><th>PIC</th>
                 <th>ORDER KE</th><th>JENIS KUNJUNGAN</th><th>AKTIFITAS</th><th>KATEGORI SAMPLING</th>
                 <th>SAMPLE DESCRIPTION</th><th>SIZE</th><th>KELUHAN & FEEDBACK</th><th>LINK FOTO</th>
                 <th>STATUS FOTO</th><th>KETERANGAN</th><th>STATUS</th><th>ACT</th>
               </tr>
             </thead>
-            <tbody>${rows.length > 0 ? rows : `<tr><td colspan="16" class="text-center text-[var(--text-muted)] py-4">Belum ada aktifitas log.</td></tr>`}</tbody>
+            <tbody>${rows.length > 0 ? rows : `<tr><td colspan="17" class="text-center text-[var(--text-muted)] py-4">Belum ada aktifitas log.</td></tr>`}</tbody>
           </table>
         </div>`;
     }
@@ -966,13 +968,16 @@
         <form onsubmit="saveAktifitas(event)">
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div class="col-span-2"><label class="text-xs">PILIH JADWAL PLAN *</label>
-              <select required name="visitId" class="input-field border-[var(--accent)]" onchange="let opt = this.options[this.selectedIndex]; document.getElementById('actKontak').value = opt.dataset.kontak; document.getElementById('actNama').value = opt.dataset.nama; let tData = db.toko.find(t=>t.kodeKontak===opt.dataset.kontak); if(tData){document.getElementById('actOrderKe').value=tData.orderKe||''; document.getElementById('actJenis').value=tData.jenisKunjungan||'';}">
+              <select required name="visitId" class="input-field border-[var(--accent)]" onchange="let opt = this.options[this.selectedIndex]; document.getElementById('actKontak').value = opt.dataset.kontak; document.getElementById('actNama').value = opt.dataset.nama; let tData = db.toko.find(t=>t.kodeKontak===opt.dataset.kontak); if(tData){document.getElementById('actOrderKe').value=tData.orderKe||''; document.getElementById('actJenis').value=tData.jenisKunjungan||''; document.getElementById('actPIC').value=tData.pic||'';}">
                 <option value="">-- Pilih Jadwal Plan Terbuka --</option>${planOptions}
               </select>
               <input type="hidden" name="kontakToko" id="actKontak">
               <input type="hidden" name="namaToko" id="actNama">
             </div>
             <div><label class="text-xs">TANGGAL KUNJUNGAN AKTUAL *</label><input type="date" required name="tanggalKunjungan" class="input-field" value="${todayStr}"></div>
+            <div><label class="text-xs text-[var(--text-muted)]">PIC</label>
+              <select name="pic" id="actPIC" class="input-field">${optionsHtml(db.setup.PIC)}</select>
+            </div>
             <div><label class="text-xs text-[var(--text-muted)]">ORDER KE</label>
               <select name="orderKe" id="actOrderKe" class="input-field">${optionsHtml(db.setup.ORDER_KE)}</select>
             </div>
