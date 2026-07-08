@@ -889,7 +889,11 @@
           return true;
       });
 
-      let rows = filteredAktifitas.map(a => `<tr>
+      let rows = filteredAktifitas.map(a => {
+        let statusFoto = (a.linkTersedia === 'Melampirkan' || a.linkTersedia === 'Tidak Melampirkan')
+          ? a.linkTersedia
+          : ((a.linkFoto && a.linkFoto.trim() !== '') ? 'Melampirkan' : 'Tidak Melampirkan');
+        return `<tr>
         <td class="text-xs text-[var(--text-muted)]">${a.visitId || '-'}</td>
         <td class="text-xs">${a.kontakToko}</td>
         <td class="font-bold text-[var(--accent)]">${a.namaToko}</td>
@@ -900,13 +904,14 @@
         <td class="text-xs">${a.kategoriSampling || '-'}</td>
         <td class="text-xs">${a.sampleDescription || '-'}</td>
         <td class="text-xs">${a.size || '-'}</td>
-        <td class="text-[var(--danger)] font-bold">${a.keluhanFeedback}</td>
+        <td class="text-[var(--danger)] font-bold">${a.keluhanFeedback || '-'}</td>
         <td><a href="${a.linkFoto}" target="_blank" class="text-blue-400 underline text-xs">${a.linkFoto ? 'Lihat Foto' : '[KOSONG]'}</a></td>
-        <td><span class="badge ${a.linkTersedia === 'Melampirkan' ? 'bg-green-500' : 'bg-red-500'} text-white">${a.linkTersedia}</span></td>
+        <td><span class="badge ${statusFoto === 'Melampirkan' ? 'bg-green-500' : 'bg-red-500'} text-white">${statusFoto}</span></td>
         <td class="text-xs max-w-xs truncate" title="${a.keterangan}">${a.keterangan}</td>
         <td><span class="badge" style="background:var(--border); color:#fff">${a.status}</span></td>
         <td>${isManager ? `<button onclick="delAktifitas('${a.id}')" class="text-xs text-[var(--danger)] font-bold">Del</button>` : ''}</td>
-      </tr>`).join('');
+      </tr>`;
+      }).join('');
       
       c.innerHTML = `
         <div class="flex justify-between items-center mb-6">
