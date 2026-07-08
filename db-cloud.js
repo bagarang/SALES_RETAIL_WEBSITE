@@ -19,7 +19,7 @@ const KEY_TO_SHEET = {
 
 // ---- Ambil seluruh data dari Google Sheet (dipanggil sekali saat load) ----
 async function cloudGetAll() {
-  if (!API_URL || API_URL.indexOf('PASTE_URL') === 0) {
+  if (!API_URL || API_URL.indexOf('https://script.google.com/macros/s/AKfycbxXwrRNlkJC68_cgnzizHTXGl-iW_7jL5h8rWTbsbAr8SjS1dRX2rCHS0ZIpJgq0gCF_Q/exec') === 0) {
     console.warn('API_URL belum diisi di db-cloud.js — memakai data offline (db_*.js).');
     return null;
   }
