@@ -369,16 +369,7 @@
           return true;
       });
 
-     // =========================
-      // TOTAL TOKO (ALL RAW DATA)
-      // =========================
-      const masterToko = isManager ? db.toko : db.toko.filter(t => t.pic === myPIC);
-
-      // Menggunakan .length untuk menghitung total baris, 
-      // sehingga ID yang duplikat di spreadsheet tetap terhitung.
-      let kpi_tokoAktif = masterToko
-          .map(t => String(t.contactId || "").trim())
-          .filter(id => id !== "").length;
+      let kpi_tokoAktif = filteredToko.filter(t => t.status !== 'Inactive' && t.status !== 'Non Aktif (Nomer Tidak dapat dihubungi)').length;
 
       let c_visited = fPlanCombined.filter(p=>p.status==='Visited').length;
       let c_contacted = fPlanCombined.filter(p=>p.status==='Contacted').length;
@@ -399,6 +390,8 @@
 
       // Total gabungan (dipakai chart & referensi lama)
       let kpi_realisasi = c_visited + c_contacted;
+      let kpi_targetTotal = kpi_targetVisited + kpi_targetRemote;
+      let kpi_persentaseTotal = kpi_targetTotal > 0 ? Math.round((kpi_realisasi / kpi_targetTotal) * 100) : 0;
 
       let compData = {}; fIntelCombined.forEach(i => { let k = i.kompetitor || 'Unknown'; if(k) compData[k] = (compData[k] || 0) + 1; });
       let issueData = {}; fAktifitasCombined.forEach(a => { if(a.keluhanFeedback && a.keluhanFeedback !== 'Tidak ada keluhan') issueData[a.keluhanFeedback] = (issueData[a.keluhanFeedback] || 0) + 1; });
@@ -409,7 +402,10 @@
       let optToko = db.toko.filter(t => isManager || t.pic === myPIC)
                            .map(t => `<option value="${t.kodeKontak}" ${fToko === t.kodeKontak ? 'selected':''}>${t.namaToko}</option>`).join('');
       let upcomingPlan = db.plan.filter(p => p.status === 'Scheduled' && p.planDate >= todayStr && (!fPIC || p.pic === fPIC) && (!fAgen || (tokoMap[p.kontakToko] && tokoMap[p.kontakToko].orderKe === fAgen))).sort((a,b) => new Date(a.planDate) - new Date(b.planDate));
-      let actionTableData = fAktifitasCombined.filter(a => (a.penjelasanKeluhan && a.penjelasanKeluhan.trim() !== '') || (a.nextAction && a.nextAction.trim() !== ''));
+      let actionTableData = fAktifitasCombined
+        .filter(a => a.keluhanFeedback && a.keluhanFeedback.trim() !== '' && a.keluhanFeedback !== 'Tidak ada keluhan')
+        .sort((a, b) => new Date(b.tanggalKunjungan) - new Date(a.tanggalKunjungan))
+        .slice(0, 5);
 
       let picFilterHtml = isManager ? `<div><label class="text-xs text-[#a18cd1] font-bold mb-1 block">FILTER PIC</label><select id="dashPIC" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua PIC --</option>${optionsHtml(db.setup.PIC, fPIC)}</select></div>` : '';
 
@@ -441,11 +437,12 @@
             <div class="card border-t-4 border-[var(--accent)] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">REALISASI VISITED</p><h2 class="text-3xl font-bold mt-1 text-[var(--accent)]">${kpi_realisasiVisited}</h2></div>
             <div class="card border-t-4 border-[var(--accent)] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">% PENCAPAIAN VISITED</p><h2 class="text-3xl font-bold mt-1 ${kpi_persentaseVisited >= 100 ? 'text-green-400' : 'text-yellow-400'}">${kpi_persentaseVisited}%</h2></div>
         </div>
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             <div class="card border-t-4 border-[#ff9a9e] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TARGET REMOTE/WA PER BULAN</p><h2 class="text-3xl font-bold mt-1 text-[#ff9a9e]">${kpi_targetRemote}</h2></div>
             <div class="card border-t-4 border-[#ff9a9e] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">REALISASI REMOTE/WA (CONTACTED)</p><h2 class="text-3xl font-bold mt-1 text-[#ff9a9e]">${kpi_realisasiRemote}</h2></div>
             <div class="card border-t-4 border-[#ff9a9e] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">% PENCAPAIAN REMOTE/WA</p><h2 class="text-3xl font-bold mt-1 ${kpi_persentaseRemote >= 100 ? 'text-green-400' : 'text-yellow-400'}">${kpi_persentaseRemote}%</h2></div>
-            <div class="card border-t-4 border-slate-500 shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TOTAL REALISASI (VISITED+REMOTE)</p><h2 class="text-3xl font-bold mt-1 text-white">${kpi_realisasi}</h2></div>
+            <div class="card border-t-4 border-slate-500 shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TOTAL REALISASI (VISITED+REMOTE)</p><h2 class="text-3xl font-bold mt-1 text-white">${kpi_realisasi}</h2><p class="text-[10px] text-[var(--text-muted)] mt-1">dari target ${kpi_targetTotal}</p></div>
+            <div class="card border-t-4 border-slate-500 shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">% PENCAPAIAN TOTAL</p><h2 class="text-3xl font-bold mt-1 ${kpi_persentaseTotal >= 100 ? 'text-green-400' : 'text-yellow-400'}">${kpi_persentaseTotal}%</h2></div>
         </div>
 
         <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
@@ -551,7 +548,7 @@
         let picList = db.setup.PIC || [];
         html += `<div class="card mb-6 border-t-4 border-[#fbc2eb] shadow-md">
           <h3 class="font-bold text-[#fbc2eb] text-lg mb-1">🎯 Target Bulanan Sales</h3>
-          <p class="text-xs text-[var(--text-muted)] mb-4">Diedit oleh Sales Manager. Otomatis dipakai di kartu "Target Kunjungan per Bulan" & "Target Remote/WA" di Dashboard, dan tersimpan ke Google Sheet (sheet Setup).</p>
+          <p class="text-xs text-[var(--text-muted)] mb-4">Diedit oleh Sales Manager. Otomatis dipakai di kartu "Target Kunjungan per Bulan" &amp; "Target Remote/WA" di Dashboard, dan tersimpan ke Google Sheet (sheet Setup).</p>
           <form onsubmit="saveTargetForm(event)">
             <table class="mb-4"><thead><tr><th>SALES (PIC)</th><th>TARGET VISITED / BULAN</th><th>TARGET REMOTE/WA / BULAN</th></tr></thead>
             <tbody>
