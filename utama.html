@@ -408,10 +408,11 @@
       db.setup.PIC.forEach(p => { lampiranByPIC[p] = { 'Melampirkan': 0, 'Tidak Melampirkan': 0 }; });
       fAktifitasCombined.forEach(a => {
         let picNama = a.pic || (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].pic) || 'Lainnya';
-        if (!lampiranByPIC[picNama]) lampiranByPIC[picNama] = { 'Melampirkan': 0, 'Tidak Melampirkan': 0 };
-        let statusFotoA = (a.linkTersedia === 'Melampirkan' || a.linkTersedia === 'Tidak Melampirkan')
+        let statusFotoA = (a.linkTersedia === 'Melampirkan' || a.linkTersedia === 'Tidak Melampirkan' || a.linkTersedia === 'Tidak Wajib')
           ? a.linkTersedia
           : ((a.linkFoto && a.linkFoto.trim() !== '') ? 'Melampirkan' : 'Tidak Melampirkan');
+        if (statusFotoA === 'Tidak Wajib') return; // PIC Ali + Remote Coverage: tidak dihitung KPI kepatuhan foto
+        if (!lampiranByPIC[picNama]) lampiranByPIC[picNama] = { 'Melampirkan': 0, 'Tidak Melampirkan': 0 };
         lampiranByPIC[picNama][statusFotoA]++;
       });
       let picLampiranLabels = Object.keys(lampiranByPIC).filter(p => (lampiranByPIC[p]['Melampirkan'] + lampiranByPIC[p]['Tidak Melampirkan']) > 0);
@@ -908,12 +909,11 @@
       });
 
       let rows = filteredAktifitas.map(a => {
-        let statusFoto = (a.linkTersedia === 'Melampirkan' || a.linkTersedia === 'Tidak Melampirkan')
+        let statusFoto = (a.linkTersedia === 'Melampirkan' || a.linkTersedia === 'Tidak Melampirkan' || a.linkTersedia === 'Tidak Wajib')
           ? a.linkTersedia
           : ((a.linkFoto && a.linkFoto.trim() !== '') ? 'Melampirkan' : 'Tidak Melampirkan');
         let picAkt = a.pic || (db.toko.find(t => t.kodeKontak === a.kontakToko) || {}).pic || '-';
         return `<tr>
-        <td class="text-xs text-[var(--text-muted)]">${a.visitId || '-'}</td>
         <td class="text-xs">${a.kontakToko}</td>
         <td class="font-bold text-[var(--accent)]">${a.namaToko}</td>
         <td>${a.tanggalKunjungan}</td>
@@ -926,7 +926,7 @@
         <td class="text-xs">${a.size || '-'}</td>
         <td class="text-[var(--danger)] font-bold">${a.keluhanFeedback || '-'}</td>
         <td><a href="${a.linkFoto}" target="_blank" class="text-blue-400 underline text-xs">${a.linkFoto ? 'Lihat Foto' : '[KOSONG]'}</a></td>
-        <td><span class="badge ${statusFoto === 'Melampirkan' ? 'bg-green-500' : 'bg-red-500'} text-white">${statusFoto}</span></td>
+        <td><span class="badge ${statusFoto === 'Melampirkan' ? 'bg-green-500' : (statusFoto === 'Tidak Wajib' ? 'bg-gray-500' : 'bg-red-500')} text-white">${statusFoto}</span></td>
         <td class="text-xs max-w-xs truncate" title="${a.keterangan}">${a.keterangan}</td>
         <td><span class="badge" style="background:var(--border); color:#fff">${a.status}</span></td>
         <td>${isManager ? `<button onclick="delAktifitas('${a.id}')" class="text-xs text-[var(--danger)] font-bold">Del</button>` : ''}</td>
@@ -948,15 +948,32 @@
           <table>
             <thead>
               <tr>
-                <th>VISIT ID</th><th>KONTAK TOKO</th><th>NAMA TOKO</th><th>TANGGAL KUNJUNGAN</th><th>PIC</th>
+                <th>KONTAK TOKO</th><th>NAMA TOKO</th><th>TANGGAL KUNJUNGAN</th><th>PIC</th>
                 <th>ORDER KE</th><th>JENIS KUNJUNGAN</th><th>AKTIFITAS</th><th>KATEGORI SAMPLING</th>
                 <th>SAMPLE DESCRIPTION</th><th>SIZE</th><th>KELUHAN & FEEDBACK</th><th>LINK FOTO</th>
                 <th>STATUS FOTO</th><th>KETERANGAN</th><th>STATUS</th><th>ACT</th>
               </tr>
             </thead>
-            <tbody>${rows.length > 0 ? rows : `<tr><td colspan="17" class="text-center text-[var(--text-muted)] py-4">Belum ada aktifitas log.</td></tr>`}</tbody>
+            <tbody>${rows.length > 0 ? rows : `<tr><td colspan="16" class="text-center text-[var(--text-muted)] py-4">Belum ada aktifitas log.</td></tr>`}</tbody>
           </table>
         </div>`;
+    }
+
+    // PIC Ali + Remote Coverage = link foto kunjungan tidak wajib & tidak dihitung KPI kepatuhan foto
+    function isFotoExempt(pic, jenisKunjungan) {
+      return (pic || '').trim() === 'Ali' && (jenisKunjungan || '').includes('Remote');
+    }
+
+    window.updateFotoRequirement = function() {
+      let picEl = document.getElementById('actPIC');
+      let jenisEl = document.getElementById('actJenis');
+      let labelEl = document.getElementById('actLinkFotoLabel');
+      if (!picEl || !jenisEl || !labelEl) return;
+      let exempt = isFotoExempt(picEl.value, jenisEl.value);
+      labelEl.textContent = exempt
+        ? 'LINK FOTO KUNJUNGAN (Tidak Wajib - Remote Coverage PIC Ali)'
+        : 'LINK FOTO KUNJUNGAN (Wajib / Poin -)';
+      labelEl.className = exempt ? 'text-xs text-[var(--text-muted)]' : 'text-xs';
     }
 
     function formAktifitas() {
@@ -968,7 +985,7 @@
         <form onsubmit="saveAktifitas(event)">
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div class="col-span-2"><label class="text-xs">PILIH JADWAL PLAN *</label>
-              <select required name="visitId" class="input-field border-[var(--accent)]" onchange="let opt = this.options[this.selectedIndex]; document.getElementById('actKontak').value = opt.dataset.kontak; document.getElementById('actNama').value = opt.dataset.nama; let tData = db.toko.find(t=>t.kodeKontak===opt.dataset.kontak); if(tData){document.getElementById('actOrderKe').value=tData.orderKe||''; document.getElementById('actJenis').value=tData.jenisKunjungan||''; document.getElementById('actPIC').value=tData.pic||'';}">
+              <select required name="visitId" class="input-field border-[var(--accent)]" onchange="let opt = this.options[this.selectedIndex]; document.getElementById('actKontak').value = opt.dataset.kontak; document.getElementById('actNama').value = opt.dataset.nama; let tData = db.toko.find(t=>t.kodeKontak===opt.dataset.kontak); if(tData){document.getElementById('actOrderKe').value=tData.orderKe||''; document.getElementById('actJenis').value=tData.jenisKunjungan||''; document.getElementById('actPIC').value=tData.pic||'';} updateFotoRequirement();">
                 <option value="">-- Pilih Jadwal Plan Terbuka --</option>${planOptions}
               </select>
               <input type="hidden" name="kontakToko" id="actKontak">
@@ -982,14 +999,14 @@
               <select name="orderKe" id="actOrderKe" class="input-field">${optionsHtml(db.setup.ORDER_KE)}</select>
             </div>
             <div><label class="text-xs text-[var(--text-muted)]">JENIS KUNJUNGAN</label>
-              <select name="jenisKunjungan" id="actJenis" class="input-field">${optionsHtml(db.setup.JENIS_KUNJUNGAN)}</select>
+              <select name="jenisKunjungan" id="actJenis" class="input-field" onchange="updateFotoRequirement()">${optionsHtml(db.setup.JENIS_KUNJUNGAN)}</select>
             </div>
             <div><label class="text-xs text-[var(--text-muted)]">AKTIFITAS</label><select name="aktifitas" class="input-field">${optionsHtml(db.setup.AKTIFITAS)}</select></div>
             <div><label class="text-xs text-[var(--text-muted)]">KATEGORI SAMPLING</label><select name="kategoriSampling" class="input-field">${optionsHtml(db.setup.KATEGORI_SAMPLING)}</select></div>
             <div><label class="text-xs">SAMPLE DESCRIPTION</label><input name="sampleDescription" class="input-field" placeholder="Deskripsi sample..."></div>
             <div><label class="text-xs">SIZE</label><input name="size" class="input-field" placeholder="Ukuran/Qty..."></div>
             <div><label class="text-xs text-[var(--text-muted)]">KELUHAN & FEEDBACK</label><select name="keluhanFeedback" class="input-field">${optionsHtml(db.setup.KELUHAN_FEEDBACK)}</select></div>
-            <div><label class="text-xs">LINK FOTO KUNJUNGAN (Wajib / Poin -)</label><input name="linkFoto" class="input-field" placeholder="https://..."></div>
+            <div><label class="text-xs" id="actLinkFotoLabel">LINK FOTO KUNJUNGAN (Wajib / Poin -)</label><input name="linkFoto" id="actLinkFoto" class="input-field" placeholder="https://..."></div>
             <div class="col-span-2"><label class="text-xs">KETERANGAN LOG</label><input name="keterangan" class="input-field"></div>
             <div class="col-span-2 border-t border-[var(--border)] pt-2 mt-2">
                 <label class="text-xs font-bold text-yellow-500">PENJELASAN KELUHAN DETAIL</label>
@@ -1011,9 +1028,15 @@
       let obj = Object.fromEntries(new FormData(e.target)); 
       obj.id = generateId('ACT');
       
-      obj.linkTersedia = (obj.linkFoto && obj.linkFoto.trim() !== '') ? 'Melampirkan' : 'Tidak Melampirkan';
-      if (obj.linkTersedia === 'Tidak Melampirkan') { 
-          obj.keterangan = (obj.keterangan || '') + ' [MINUS POIN KINERJA: Bukti Link Foto Tidak Dilampirkan]'; 
+      let picUntukAktifitas = obj.pic || (db.toko.find(t => t.kodeKontak === obj.kontakToko) || {}).pic || '';
+
+      if (isFotoExempt(picUntukAktifitas, obj.jenisKunjungan)) {
+        obj.linkTersedia = 'Tidak Wajib';
+      } else {
+        obj.linkTersedia = (obj.linkFoto && obj.linkFoto.trim() !== '') ? 'Melampirkan' : 'Tidak Melampirkan';
+        if (obj.linkTersedia === 'Tidak Melampirkan') { 
+            obj.keterangan = (obj.keterangan || '') + ' [MINUS POIN KINERJA: Bukti Link Foto Tidak Dilampirkan]'; 
+        }
       }
       
       db.aktifitas.push(obj); 
