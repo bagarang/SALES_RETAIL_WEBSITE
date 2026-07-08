@@ -383,12 +383,25 @@
       fAktifitasCombined.forEach(a => {
         let picNama = a.pic || (tokoMap[normKontak(a.kontakToko)] && tokoMap[normKontak(a.kontakToko)].pic);
         if (!picNama || picNama.trim() === '' || picNama === '-') picNama = 'Lainnya';
+
+        // ATURAN KHUSUS chart KEPATUHAN FOTO (PIC) ini SAJA: untuk PIC Ali,
+        // hanya kunjungan dengan Jenis Kunjungan = 'Kunjungan Fisik' yang
+        // dihitung ke KPI/chart ini. Jenis kunjungan lain (Remote Coverage
+        // Call/WA, Canvasing, Event ICI, dst) milik Ali TIDAK dihitung &
+        // tidak ikut tampil di chart ini. Dicek langsung dari jenisKunjungan
+        // tiap aktifitas (bukan dari nilai linkTersedia yang tersimpan),
+        // supaya chart ini tetap akurat walau ada data lama di Sheet yang
+        // sempat tersimpan salah akibat bug sebelumnya. Aturan ini TIDAK
+        // memengaruhi KPI/chart lain di Dashboard maupun tabel Aktifitas.
+        if (samePic(picNama, 'Ali')) {
+          let jk = String(a.jenisKunjungan || '').trim().toLowerCase();
+          if (jk !== 'kunjungan fisik') return;
+        }
         
-        let statusFotoA = (a.linkTersedia === 'Melampirkan' || a.linkTersedia === 'Tidak Melampirkan' || a.linkTersedia === 'Tidak Wajib')
+        let statusFotoA = (a.linkTersedia === 'Melampirkan' || a.linkTersedia === 'Tidak Melampirkan')
           ? a.linkTersedia
           : ((a.linkFoto && a.linkFoto.trim() !== '') ? 'Melampirkan' : 'Tidak Melampirkan');
-          
-        if (statusFotoA === 'Tidak Wajib') return; 
+
         if (!lampiranByPIC[picNama]) lampiranByPIC[picNama] = { 'Melampirkan': 0, 'Tidak Melampirkan': 0 };
         lampiranByPIC[picNama][statusFotoA]++;
       });
@@ -927,8 +940,15 @@
     }
 
     function isFotoExempt(pic, jenisKunjungan) {
+      // PENTING: 'jk' di atas sudah di-lowercase, jadi pembandingnya juga
+      // HARUS lowercase ('kunjungan fisik'), bukan 'Kunjungan Fisik'.
+      // Sebelumnya dibandingkan ke string ber-huruf-besar sehingga jk
+      // (selalu huruf kecil) TIDAK PERNAH sama dengan 'Kunjungan Fisik' --
+      // akibatnya PIC Ali dianggap exempt (foto tidak wajib) bahkan saat
+      // Jenis Kunjungan-nya benar-benar 'Kunjungan Fisik'. Ini yang membuat
+      // kunjungan fisik Ali ikut ter-skip dari KPI/dashboard Kepatuhan Foto.
       let jk = String(jenisKunjungan || '').trim().toLowerCase();
-      return samePic(pic, 'Ali') && jk !== 'Kunjungan Fisik';
+      return samePic(pic, 'Ali') && jk !== 'kunjungan fisik';
     }
 
     window.updateFotoRequirement = function() {
