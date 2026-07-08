@@ -403,7 +403,7 @@
                            .map(t => `<option value="${t.kodeKontak}" ${fToko === t.kodeKontak ? 'selected':''}>${t.namaToko}</option>`).join('');
       let upcomingPlan = db.plan.filter(p => p.status === 'Scheduled' && p.planDate >= todayStr && (!fPIC || p.pic === fPIC) && (!fAgen || (tokoMap[p.kontakToko] && tokoMap[p.kontakToko].orderKe === fAgen))).sort((a,b) => new Date(a.planDate) - new Date(b.planDate));
       let actionTableData = fAktifitasCombined
-        .filter(a => a.keterangan && a.keterangan.trim() !== '')
+        .filter(a => a.keluhanFeedback && a.keluhanFeedback.trim() !== '' && a.keluhanFeedback !== 'Tidak ada keluhan')
         .sort((a, b) => new Date(b.tanggalKunjungan) - new Date(a.tanggalKunjungan))
         .slice(0, 5);
 
