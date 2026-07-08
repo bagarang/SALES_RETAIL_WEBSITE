@@ -362,9 +362,10 @@
       let fAktifitasCombined = db.aktifitas.filter(a => baseF_Akt(a) && (!fPIC || (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].pic === fPIC)) && (!fAgen || (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].orderKe === fAgen)));
       let fIntelCombined = db.intel.filter(i => baseF_Intel(i) && (!fPIC || (i.pic ? i.pic === fPIC : (tokoMap[i.kontakToko] && tokoMap[i.kontakToko].pic === fPIC))) && (!fAgen || (tokoMap[i.kontakToko] && tokoMap[i.kontakToko].orderKe === fAgen)));
       
-      // TOTAL TOKO AKTIF = base count total toko (unique contactId), TIDAK terpengaruh filter PIC/Agent/Toko.
+      // TOTAL TOKO AKTIF = base count total toko (COUNT baris contactId di tab Toko, sama seperti spreadsheet),
+      // TIDAK di-deduplikasi dan TIDAK terpengaruh filter PIC/Agent/Toko.
       // Ini dipakai sebagai basis perhitungan target, jadi harus konsisten berapa pun filter yang dipilih.
-      let kpi_tokoAktif = new Set(db.toko.map(t => t.contactId || t.kodeKontak)).size;
+      let kpi_tokoAktif = db.toko.filter(t => (t.contactId && String(t.contactId).trim() !== '') || (t.kodeKontak && String(t.kodeKontak).trim() !== '')).length;
 
       let c_visited = fPlanCombined.filter(p=>p.status==='Visited').length;
       let c_contacted = fPlanCombined.filter(p=>p.status==='Contacted').length;
