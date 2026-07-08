@@ -31,7 +31,6 @@
     }
     body { background-color: var(--bg-dark); color: var(--text-main); font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif; overflow-x: hidden; }
     
-    /* CUSTOM SCROLLBAR UNTUK PC/MOUSE AGAR LEBIH JELAS */
     ::-webkit-scrollbar { width: 10px; height: 10px; }
     ::-webkit-scrollbar-track { background: var(--bg-dark); border-radius: 4px; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; border: 2px solid var(--bg-dark); }
@@ -43,7 +42,6 @@
     .nav-btn.active { background-color: var(--accent-glow); color: var(--accent); border-left-color: var(--accent); font-weight: 600; }
     .card { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
     
-    /* KELAS BARU UNTUK SCROLLING TABEL */
     .table-wrapper { overflow: auto; max-height: calc(100vh - 160px); }
     
     .input-field { width: 100%; background-color: var(--bg-dark); border: 1px solid var(--border); color: white; padding: 8px 12px; border-radius: 6px; margin-top: 4px; }
@@ -52,7 +50,6 @@
     
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
     
-    /* STICKY HEADER AGAR JUDUL KOLOM TIDAK HILANG SAAT SCROLL BAWAH */
     th { 
         background-color: var(--bg-dark); 
         color: var(--text-muted); 
@@ -62,7 +59,7 @@
         position: sticky; 
         top: 0; 
         z-index: 10;
-        box-shadow: 0 1px 0 var(--border); /* Pengganti border-bottom agar rapi saat sticky */
+        box-shadow: 0 1px 0 var(--border);
     }
     
     td { padding: 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
@@ -109,9 +106,6 @@
   <div id="cloudStatusBar" style="display:none; position:fixed; bottom:16px; right:16px; z-index:100; max-width:360px; padding:12px 16px; border-radius:8px; font-size:13px; box-shadow:0 4px 12px rgba(0,0,0,0.4);"></div>
 
   <script>
-    // =========================================================================
-    // 0. SISTEM KEAMANAN & LOGIN SESSION
-    // =========================================================================
     const loggedInRole = sessionStorage.getItem('crm_logged_in_role');
     
     if (!loggedInRole) {
@@ -128,9 +122,6 @@
     const myPIC = loggedInRole === 'RFS Ali' ? 'Ali' : (loggedInRole === 'AER Thia' ? 'Thia' : '');
     const isManager = loggedInRole === 'Sales Manager';
 
-    // =========================================================================
-    // 1. DATA INITIALIZATION & GLOBALS
-    // =========================================================================
     let db = {
         setup: typeof INIT_SETUP !== 'undefined' ? INIT_SETUP : {},
         toko: typeof INIT_TOKO !== 'undefined' ? INIT_TOKO : [],
@@ -186,9 +177,6 @@
         });
     }
 
-    // =========================================================================
-    // 2. CORE SYSTEM & ROLE FUNCTIONS
-    // =========================================================================
     function applyRoleRestrictions(role) {
         document.getElementById('userProfileDisplay').innerText = `👤 ${role}`;
         let vpBtn = document.getElementById('nav-visitplan');
@@ -238,7 +226,7 @@
     function delPlan(id) { if(confirm('Hapus Visit Plan ini?')) { db.plan = db.plan.filter(p => p.id !== id); setDB('db_plan', db.plan); renderPage('visitplan'); } }
     function delAktifitas(id) { if(confirm('Hapus Aktifitas ini?')) { db.aktifitas = db.aktifitas.filter(a => a.id !== id); setDB('db_aktifitas', db.aktifitas); renderPage('aktifitas'); } }
 
-    function htmlEscapeAttr(str) { return String(str || '').replace(/&/g,'&').replace(/"/g,'"').replace(/</g,'<').replace(/>/g,'>'); }
+    function htmlEscapeAttr(str) { return String(str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
     window.updateNextAction = function(id, value) {
       let idx = db.aktifitas.findIndex(a => a.id === id);
@@ -255,7 +243,7 @@
     window.downloadReportLampiran = function() {
         let csvContent = "data:text/csv;charset=utf-8,Tanggal,Nama Toko,PIC,Aktifitas,Status Lampiran Foto\n";
         db.aktifitas.forEach(a => {
-            let p_pic = (findTokoByKontak(a.kontakToko) || {}).pic || '-';
+            let p_pic = a.pic || (findTokoByKontak(a.kontakToko) || {}).pic || '-';
             let row = `${a.tanggalKunjungan},"${a.namaToko}",${p_pic},"${a.aktifitas}",${a.linkTersedia}`;
             csvContent += row + "\n";
         });
@@ -267,9 +255,6 @@
         link.click();
     }
 
-    // =========================================================================
-    // IMPORT DATABASE EXCEL LOGIC
-    // =========================================================================
     window.handleImportExcel = function(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -344,9 +329,6 @@
         reader.readAsArrayBuffer(file);
     };
 
-    // =========================================================================
-    // 3. DASHBOARD
-    // =========================================================================
     function renderDashboard(c) {
       let fStart = document.getElementById('dashStart') ? document.getElementById('dashStart').value : window.dashFilters.start;
       let fEnd = document.getElementById('dashEnd') ? document.getElementById('dashEnd').value : window.dashFilters.end;
@@ -393,11 +375,15 @@
 
       let lampiranByPIC = {};
       db.setup.PIC.forEach(p => { lampiranByPIC[p] = { 'Melampirkan': 0, 'Tidak Melampirkan': 0 }; });
+      
       fAktifitasCombined.forEach(a => {
-        let picNama = a.pic || (tokoMap[normKontak(a.kontakToko)] && tokoMap[normKontak(a.kontakToko)].pic) || 'Lainnya';
+        let picNama = a.pic || (tokoMap[normKontak(a.kontakToko)] && tokoMap[normKontak(a.kontakToko)].pic);
+        if (!picNama || picNama.trim() === '' || picNama === '-') picNama = 'Lainnya';
+        
         let statusFotoA = (a.linkTersedia === 'Melampirkan' || a.linkTersedia === 'Tidak Melampirkan' || a.linkTersedia === 'Tidak Wajib')
           ? a.linkTersedia
           : ((a.linkFoto && a.linkFoto.trim() !== '') ? 'Melampirkan' : 'Tidak Melampirkan');
+          
         if (statusFotoA === 'Tidak Wajib') return; 
         if (!lampiranByPIC[picNama]) lampiranByPIC[picNama] = { 'Melampirkan': 0, 'Tidak Melampirkan': 0 };
         lampiranByPIC[picNama][statusFotoA]++;
@@ -539,9 +525,6 @@
       }, 50);
     }
 
-    // =========================================================================
-    // 4. SETUP MODULE
-    // =========================================================================
     function renderSetup(c) {
       let html = `<div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold">Setup Master Data</h1>
@@ -554,7 +537,7 @@
         let picList = db.setup.PIC || [];
         html += `<div class="card mb-6 border-t-4 border-[#fbc2eb] shadow-md">
           <h3 class="font-bold text-[#fbc2eb] text-lg mb-1">🎯 Target Bulanan Sales</h3>
-          <p class="text-xs text-[var(--text-muted)] mb-4">Diedit oleh Sales Manager. Otomatis dipakai di kartu "Target Kunjungan per Bulan" & "Target Remote/WA" di Dashboard, dan tersimpan ke Google Sheet (sheet Setup).</p>
+          <p class="text-xs text-[var(--text-muted)] mb-4">Diedit oleh Sales Manager. Otomatis dipakai di kartu "Target Kunjungan per Bulan" &amp; "Target Remote/WA" di Dashboard, dan tersimpan ke Google Sheet (sheet Setup).</p>
           <form onsubmit="saveTargetForm(event)">
             <table class="mb-4"><thead><tr><th>SALES (PIC)</th><th>TARGET VISITED / BULAN</th><th>TARGET REMOTE/WA / BULAN</th></tr></thead>
             <tbody>
@@ -610,9 +593,6 @@
     function saveSetup(key) { let val = document.getElementById('setupVal').value; if(val) { autoAddSetup(key, val); closeModal(); renderPage('setup'); } }
     function delSetup(key, idx) { if(confirm('Hapus item pilihan ini?')) { db.setup[key].splice(idx, 1); setDB('db_setup', db.setup); renderPage('setup'); } }
 
-    // =========================================================================
-    // 5. DAFTAR TOKO
-    // =========================================================================
     function renderDaftarToko(c) {
       let filteredToko = isManager ? db.toko : db.toko.filter(t => t.pic === myPIC);
 
@@ -702,9 +682,6 @@
       setDB('db_toko', db.toko); closeModal(); renderPage('daftartoko');
     }
 
-    // =========================================================================
-    // 6. VISIT PLAN
-    // =========================================================================
     function renderVisitPlan(c) {
       let vpLabel = window.currentUserRole === 'AER Thia' ? 'Contact Plan' : 'Visit Plan';
       
@@ -879,9 +856,6 @@
       renderPage('visitplan'); 
     }
 
-    // =========================================================================
-    // 7. AKTIFITAS (LOG)
-    // =========================================================================
     function renderAktifitas(c) {
       let fJenis = window.actFilters.jenis;
 
@@ -899,7 +873,9 @@
         let statusFoto = (a.linkTersedia === 'Melampirkan' || a.linkTersedia === 'Tidak Melampirkan' || a.linkTersedia === 'Tidak Wajib')
           ? a.linkTersedia
           : ((a.linkFoto && a.linkFoto.trim() !== '') ? 'Melampirkan' : 'Tidak Melampirkan');
+          
         let picAkt = a.pic || (findTokoByKontak(a.kontakToko) || {}).pic || '-';
+        
         return `<tr>
         <td class="text-xs">${a.kontakToko}</td>
         <td class="font-bold text-[var(--accent)]">${a.namaToko}</td>
@@ -946,7 +922,6 @@
         </div>`;
     }
 
-    // Pengecualian Foto: True jika PIC Ali DAN jenis kunjungan BUKAN Kunjungan Fisik
     function isFotoExempt(pic, jenisKunjungan) {
       return (pic || '').trim() === 'Ali' && (jenisKunjungan || '').trim() !== 'Kunjungan Fisik';
     }
@@ -962,22 +937,38 @@
         : 'LINK FOTO KUNJUNGAN (Wajib / Poin -)';
       labelEl.className = exempt ? 'text-xs text-[var(--text-muted)]' : 'text-xs';
     }
+    
+    window.filterTokoSelectAct = function(val) {
+        let filter = val.toLowerCase();
+        let select = document.getElementById('actSelectToko');
+        let html = '<option value="">-- Pilih Toko Master --</option>';
+        
+        db.toko.forEach(t => {
+            if (!isManager && t.pic !== myPIC) return; 
+            let text = t.kodeKontak + ' - ' + t.namaToko;
+            if(text.toLowerCase().includes(filter)) {
+                html += `<option value="${t.kodeKontak}" data-nama="${t.namaToko}" data-pic="${t.pic||''}" data-orderke="${t.orderKe||''}" data-jenis="${t.jenisKunjungan||''}">${text}</option>`;
+            }
+        });
+        select.innerHTML = html;
+    }
 
     function formAktifitas() {
-      let validPlans = db.plan.filter(p => (p.status === 'Scheduled' || p.status === 'Overdue') && (isManager || p.pic === myPIC));
-      let planOptions = validPlans.map(p => `<option value="${p.id}" data-kontak="${p.kontakToko}" data-nama="${p.namaToko}">${p.planDate} | ${p.namaToko} - ${p.tujuanKunjungan}</option>`).join('');
+      let filteredTokoForAct = isManager ? db.toko : db.toko.filter(t => t.pic === myPIC);
+      let tokoOptions = filteredTokoForAct.map(t => `<option value="${t.kodeKontak}" data-nama="${t.namaToko}" data-pic="${t.pic||''}" data-orderke="${t.orderKe||''}" data-jenis="${t.jenisKunjungan||''}">${t.kodeKontak} - ${t.namaToko}</option>`).join('');
       
       openModal(`
         <h2 class="text-xl font-bold mb-4 text-[var(--accent)]">Laporan Hasil Visit</h2>
         <form onsubmit="saveAktifitas(event)">
           <div class="grid grid-cols-2 gap-4 mb-4">
-            <div class="col-span-2"><label class="text-xs">PILIH JADWAL PLAN *</label>
-              <select required name="visitId" class="input-field border-[var(--accent)]" onchange="let opt = this.options[this.selectedIndex]; document.getElementById('actKontak').value = opt.dataset.kontak; document.getElementById('actNama').value = opt.dataset.nama; let tData = db.toko.find(t=>t.kodeKontak===opt.dataset.kontak); if(tData){document.getElementById('actOrderKe').value=tData.orderKe||''; document.getElementById('actJenis').value=tData.jenisKunjungan||''; document.getElementById('actPIC').value=tData.pic||'';} updateFotoRequirement();">
-                <option value="">-- Pilih Jadwal Plan Terbuka --</option>${planOptions}
+            <div class="col-span-2"><label class="text-xs">PILIH TOKO * (Ketik untuk mencari master)</label>
+              <input type="text" class="input-field border-[var(--accent)] mb-1" placeholder="🔍 Cari Nama Toko / Kontak ID..." oninput="filterTokoSelectAct(this.value)">
+              <select required id="actSelectToko" name="kontakToko" class="input-field border-[var(--accent)]" onchange="let opt = this.options[this.selectedIndex]; document.getElementById('actNama').value = opt.dataset.nama || ''; document.getElementById('actOrderKe').value = opt.dataset.orderke || ''; document.getElementById('actJenis').value = opt.dataset.jenis || ''; document.getElementById('actPIC').value = opt.dataset.pic || ''; updateFotoRequirement();">
+                <option value="">-- Pilih Toko Master --</option>${tokoOptions}
               </select>
-              <input type="hidden" name="kontakToko" id="actKontak">
               <input type="hidden" name="namaToko" id="actNama">
             </div>
+            
             <div><label class="text-xs">TANGGAL KUNJUNGAN AKTUAL *</label><input type="date" required name="tanggalKunjungan" class="input-field" value="${todayStr}"></div>
             <div><label class="text-xs text-[var(--text-muted)]">PIC (Otomatis Sesuai Toko)</label>
               <input name="pic" id="actPIC" class="input-field text-gray-400" value="" readonly>
@@ -1016,6 +1007,7 @@
       obj.id = generateId('ACT');
       
       let picUntukAktifitas = obj.pic || (findTokoByKontak(obj.kontakToko) || {}).pic || '';
+      obj.pic = picUntukAktifitas; 
 
       if (isFotoExempt(picUntukAktifitas, obj.jenisKunjungan)) {
         obj.linkTersedia = 'Tidak Wajib';
@@ -1029,10 +1021,9 @@
       db.aktifitas.push(obj); 
       setDB('db_aktifitas', db.aktifitas);
 
-      let pIdx = db.plan.findIndex(p => p.id === obj.visitId);
+      let pIdx = db.plan.findIndex(p => p.kontakToko === obj.kontakToko && (p.status === 'Scheduled' || p.status === 'Overdue'));
       if(pIdx > -1) { 
           let jenis = obj.jenisKunjungan || ''; 
-          
           if(obj.status === 'Cancelled') { 
               db.plan[pIdx].status = 'Cancelled'; 
           } else if (jenis.includes('Call') || jenis.includes('Remote') || jenis.includes('WA')) { 
@@ -1040,7 +1031,6 @@
           } else { 
               db.plan[pIdx].status = 'Visited'; 
           }
-          
           db.plan[pIdx].actualDate = obj.tanggalKunjungan; 
           db.plan[pIdx].daysUntilDue = 'Done'; 
           setDB('db_plan', db.plan); 
@@ -1056,9 +1046,6 @@
       renderPage('aktifitas');
     }
 
-    // =========================================================================
-    // 8. INTELEJEN REPORT
-    // =========================================================================
     function renderIntelejen(c) {
       let filteredIntel = db.intel.filter(i => {
           if (!isManager) {
