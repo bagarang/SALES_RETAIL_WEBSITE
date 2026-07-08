@@ -975,8 +975,8 @@
               <input type="hidden" name="namaToko" id="actNama">
             </div>
             <div><label class="text-xs">TANGGAL KUNJUNGAN AKTUAL *</label><input type="date" required name="tanggalKunjungan" class="input-field" value="${todayStr}"></div>
-            <div><label class="text-xs text-[var(--text-muted)]">PIC</label>
-              <select name="pic" id="actPIC" class="input-field">${optionsHtml(db.setup.PIC)}</select>
+            <div><label class="text-xs text-[var(--text-muted)]">PIC (Otomatis Sesuai Toko)</label>
+              <input name="pic" id="actPIC" class="input-field text-gray-400" value="" readonly>
             </div>
             <div><label class="text-xs text-[var(--text-muted)]">ORDER KE</label>
               <select name="orderKe" id="actOrderKe" class="input-field">${optionsHtml(db.setup.ORDER_KE)}</select>
