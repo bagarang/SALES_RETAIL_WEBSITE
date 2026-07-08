@@ -213,7 +213,7 @@
 
     function openModal(html) { document.getElementById('modal-body').innerHTML = html; document.getElementById('modal').style.display = 'flex'; }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
-    function optionsHtml(arrayData, selectedValue = '') { return arrayData ? arrayData.map(val => `<option value="${val}" ${val === selectedValue ? 'selected' : ''}>${val}</option>`).join('') : ''; }
+    function optionsHtml(arrayData, selectedValue = '') { return arrayData ? arrayData.map(val => `<option value="${val}" ${String(val).trim().toLowerCase() === String(selectedValue).trim().toLowerCase() ? 'selected' : ''}>${val}</option>`).join('') : ''; }
     function generateId(prefix) { return prefix + Math.random().toString(36).substr(2, 5).toUpperCase(); }
 
     function normKontak(s) { return String(s || '').trim().replace(/\s+/g, ' '); }
@@ -221,6 +221,10 @@
       let target = normKontak(kontakToko);
       return db.toko.find(t => normKontak(t.kodeKontak) === target);
     }
+
+    // Perbandingan PIC yang toleran huruf besar/kecil & spasi (mis. "ALI" di sheet vs "Ali" di kode)
+    function normPic(s) { return String(s || '').trim().toLowerCase(); }
+    function samePic(a, b) { return normPic(a) === normPic(b); }
 
     function delToko(id) { if(confirm('Hapus Toko ini?')) { db.toko = db.toko.filter(t => t.contactId !== id); setDB('db_toko', db.toko); renderPage('daftartoko'); } }
     function delPlan(id) { if(confirm('Hapus Visit Plan ini?')) { db.plan = db.plan.filter(p => p.id !== id); setDB('db_plan', db.plan); renderPage('visitplan'); } }
@@ -344,9 +348,9 @@
       const baseF_Akt = a => { if(fStart && a.tanggalKunjungan < fStart) return false; if(fEnd && a.tanggalKunjungan > fEnd) return false; if(fToko && a.kontakToko !== fToko) return false; return true; };
       const baseF_Intel = i => { if(fStart && i.date < fStart) return false; if(fEnd && i.date > fEnd) return false; if(fToko && i.kontakToko !== fToko) return false; return true; };
 
-      let fPlanCombined = db.plan.filter(p => baseF_Plan(p) && (!fPIC || p.pic === fPIC) && (!fAgen || (tokoMap[normKontak(p.kontakToko)] && tokoMap[normKontak(p.kontakToko)].orderKe === fAgen)));
-      let fAktifitasCombined = db.aktifitas.filter(a => baseF_Akt(a) && (!fPIC || (a.pic ? a.pic === fPIC : (tokoMap[normKontak(a.kontakToko)] && tokoMap[normKontak(a.kontakToko)].pic === fPIC))) && (!fAgen || (tokoMap[normKontak(a.kontakToko)] && tokoMap[normKontak(a.kontakToko)].orderKe === fAgen)));
-      let fIntelCombined = db.intel.filter(i => baseF_Intel(i) && (!fPIC || (i.pic ? i.pic === fPIC : (tokoMap[normKontak(i.kontakToko)] && tokoMap[normKontak(i.kontakToko)].pic === fPIC))) && (!fAgen || (tokoMap[normKontak(i.kontakToko)] && tokoMap[normKontak(i.kontakToko)].orderKe === fAgen)));
+      let fPlanCombined = db.plan.filter(p => baseF_Plan(p) && (!fPIC || samePic(p.pic, fPIC)) && (!fAgen || (tokoMap[normKontak(p.kontakToko)] && tokoMap[normKontak(p.kontakToko)].orderKe === fAgen)));
+      let fAktifitasCombined = db.aktifitas.filter(a => baseF_Akt(a) && (!fPIC || (a.pic ? samePic(a.pic, fPIC) : (tokoMap[normKontak(a.kontakToko)] && samePic(tokoMap[normKontak(a.kontakToko)].pic, fPIC)))) && (!fAgen || (tokoMap[normKontak(a.kontakToko)] && tokoMap[normKontak(a.kontakToko)].orderKe === fAgen)));
+      let fIntelCombined = db.intel.filter(i => baseF_Intel(i) && (!fPIC || (i.pic ? samePic(i.pic, fPIC) : (tokoMap[normKontak(i.kontakToko)] && samePic(tokoMap[normKontak(i.kontakToko)].pic, fPIC)))) && (!fAgen || (tokoMap[normKontak(i.kontakToko)] && tokoMap[normKontak(i.kontakToko)].orderKe === fAgen)));
       
       let kpi_tokoAktif = db.toko.filter(t => (t.contactId && String(t.contactId).trim() !== '') || (t.kodeKontak && String(t.kodeKontak).trim() !== '')).length;
 
@@ -391,9 +395,9 @@
       let picLampiranLabels = Object.keys(lampiranByPIC).filter(p => (lampiranByPIC[p]['Melampirkan'] + lampiranByPIC[p]['Tidak Melampirkan']) > 0);
       if (picLampiranLabels.length === 0) picLampiranLabels = Object.keys(lampiranByPIC);
 
-      let optToko = db.toko.filter(t => isManager || t.pic === myPIC)
+      let optToko = db.toko.filter(t => isManager || samePic(t.pic, myPIC))
                            .map(t => `<option value="${t.kodeKontak}" ${fToko === t.kodeKontak ? 'selected':''}>${t.namaToko}</option>`).join('');
-      let upcomingPlan = db.plan.filter(p => p.status === 'Scheduled' && p.planDate >= todayStr && (!fPIC || p.pic === fPIC) && (!fAgen || (tokoMap[normKontak(p.kontakToko)] && tokoMap[normKontak(p.kontakToko)].orderKe === fAgen))).sort((a,b) => new Date(a.planDate) - new Date(b.planDate));
+      let upcomingPlan = db.plan.filter(p => p.status === 'Scheduled' && p.planDate >= todayStr && (!fPIC || samePic(p.pic, fPIC)) && (!fAgen || (tokoMap[normKontak(p.kontakToko)] && tokoMap[normKontak(p.kontakToko)].orderKe === fAgen))).sort((a,b) => new Date(a.planDate) - new Date(b.planDate));
       let actionTableData = fAktifitasCombined
         .filter(a => a.keluhanFeedback && a.keluhanFeedback.trim() !== '' && a.keluhanFeedback !== 'Tidak ada keluhan')
         .sort((a, b) => new Date(b.tanggalKunjungan) - new Date(a.tanggalKunjungan))
@@ -594,7 +598,7 @@
     function delSetup(key, idx) { if(confirm('Hapus item pilihan ini?')) { db.setup[key].splice(idx, 1); setDB('db_setup', db.setup); renderPage('setup'); } }
 
     function renderDaftarToko(c) {
-      let filteredToko = isManager ? db.toko : db.toko.filter(t => t.pic === myPIC);
+      let filteredToko = isManager ? db.toko : db.toko.filter(t => samePic(t.pic, myPIC));
 
       let rows = filteredToko.map(t => {
         let statusColor = (t.status === 'Inactive' || t.status === 'Non Aktif (Nomer Tidak dapat dihubungi)') ? 'var(--danger)' : 
@@ -689,7 +693,7 @@
 
       let filteredPlans = db.plan.filter(p => {
           if (p.status === 'Visited' || p.status === 'Contacted' || p.status === 'Recreated') return false;
-          if (fPIC && p.pic !== fPIC) return false;
+          if (fPIC && !samePic(p.pic, fPIC)) return false;
           return true;
       });
 
@@ -753,7 +757,7 @@
 
     window.downloadVisitHistory = function() {
         let fPIC = isManager ? '' : myPIC;
-        let history = db.plan.filter(p => (p.status === 'Visited' || p.status === 'Contacted') && (!fPIC || p.pic === fPIC));
+        let history = db.plan.filter(p => (p.status === 'Visited' || p.status === 'Contacted') && (!fPIC || samePic(p.pic, fPIC)));
         if (history.length === 0) { alert('Belum ada data history kunjungan/contacted untuk area Anda.'); return; }
         
         let csvContent = "data:text/csv;charset=utf-8,ID Plan,Kontak Toko,Nama Toko,Tujuan,PIC,Plan Date,Actual Date,Status,Keterangan\n";
@@ -777,7 +781,7 @@
         let html = '<option value="">Pilih Toko Master...</option>';
         
         db.toko.forEach(t => {
-            if (!isManager && t.pic !== myPIC) return; 
+            if (!isManager && !samePic(t.pic, myPIC)) return; 
             let text = t.kodeKontak + ' - ' + t.namaToko;
             if(text.toLowerCase().includes(filter)) {
                 html += `<option value="${t.kodeKontak}" data-nama="${t.namaToko}">${text}</option>`;
@@ -789,7 +793,7 @@
     function formPlan(preToko = '', preNama = '', prePic = '', preKeterangan = '', oldPlanId = '') {
       let vpLabel = window.currentUserRole === 'AER Thia' ? 'Contact Plan' : 'Visit Plan';
       
-      let filteredTokoForPlan = isManager ? db.toko : db.toko.filter(t => t.pic === myPIC);
+      let filteredTokoForPlan = isManager ? db.toko : db.toko.filter(t => samePic(t.pic, myPIC));
       let tokoOptions = filteredTokoForPlan.map(t => `<option value="${t.kodeKontak}" data-nama="${t.namaToko}" ${t.kodeKontak === preToko ? 'selected':''}>${t.kodeKontak} - ${t.namaToko}</option>`).join('');
       
       let picInputHtml = isManager ? 
@@ -864,7 +868,7 @@
           
           if (!isManager) {
               let tData = findTokoByKontak(a.kontakToko);
-              if (!tData || tData.pic !== myPIC) return false;
+              if (!tData || !samePic(tData.pic, myPIC)) return false;
           }
           return true;
       });
@@ -923,7 +927,8 @@
     }
 
     function isFotoExempt(pic, jenisKunjungan) {
-      return (pic || '').trim() === 'Ali' && (jenisKunjungan || '').trim() !== 'Kunjungan Fisik';
+      let jk = String(jenisKunjungan || '').trim().toLowerCase();
+      return samePic(pic, 'Ali') && jk !== 'kunjungan fisik';
     }
 
     window.updateFotoRequirement = function() {
@@ -944,7 +949,7 @@
         let html = '<option value="">-- Pilih Toko Master --</option>';
         
         db.toko.forEach(t => {
-            if (!isManager && t.pic !== myPIC) return; 
+            if (!isManager && !samePic(t.pic, myPIC)) return; 
             let text = t.kodeKontak + ' - ' + t.namaToko;
             if(text.toLowerCase().includes(filter)) {
                 html += `<option value="${t.kodeKontak}" data-nama="${t.namaToko}" data-pic="${t.pic||''}" data-orderke="${t.orderKe||''}" data-jenis="${t.jenisKunjungan||''}">${text}</option>`;
@@ -954,7 +959,7 @@
     }
 
     function formAktifitas() {
-      let filteredTokoForAct = isManager ? db.toko : db.toko.filter(t => t.pic === myPIC);
+      let filteredTokoForAct = isManager ? db.toko : db.toko.filter(t => samePic(t.pic, myPIC));
       let tokoOptions = filteredTokoForAct.map(t => `<option value="${t.kodeKontak}" data-nama="${t.namaToko}" data-pic="${t.pic||''}" data-orderke="${t.orderKe||''}" data-jenis="${t.jenisKunjungan||''}">${t.kodeKontak} - ${t.namaToko}</option>`).join('');
       
       openModal(`
@@ -1049,10 +1054,10 @@
     function renderIntelejen(c) {
       let filteredIntel = db.intel.filter(i => {
           if (!isManager) {
-              if (i.pic) { if (i.pic !== myPIC) return false; }
+              if (i.pic) { if (!samePic(i.pic, myPIC)) return false; }
               else {
                   let tData = findTokoByKontak(i.kontakToko);
-                  if (!tData || tData.pic !== myPIC) return false;
+                  if (!tData || !samePic(tData.pic, myPIC)) return false;
               }
           }
           return true;
@@ -1087,7 +1092,7 @@
     }
 
     function formIntel() {
-      let filteredTokoForIntel = isManager ? db.toko : db.toko.filter(t => t.pic === myPIC);
+      let filteredTokoForIntel = isManager ? db.toko : db.toko.filter(t => samePic(t.pic, myPIC));
       let tokoOptions = filteredTokoForIntel.map(t => `<option value="${t.kodeKontak}" data-nama="${t.namaToko}">${t.kodeKontak} - ${t.namaToko}</option>`).join('');
       let picSelectHtml = isManager ?
             `<select required name="pic" class="input-field">${optionsHtml(db.setup.PIC)}</select>` :
