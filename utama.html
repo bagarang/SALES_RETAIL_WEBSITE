@@ -9,8 +9,6 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   
-  <!-- db_*.js dipertahankan HANYA sebagai fallback offline (jika Google Sheet/API
-       gagal diakses). Sumber data utama sekarang adalah Google Sheet lewat db-cloud.js -->
   <script src="db_setup.js"></script>
   <script src="db_toko.js"></script>
   <script src="db_plan.js"></script>
@@ -133,11 +131,6 @@
     // =========================================================================
     // 1. DATA INITIALIZATION & GLOBALS
     // =========================================================================
-    // Data sekarang tersentralisasi di Google Sheet (lihat db-cloud.js untuk
-    // implementasi getDB/setDB yang berbicara ke Apps Script Web App).
-    // db_*.js (INIT_SETUP/INIT_TOKO/dst) hanya dipakai sebagai fallback kalau
-    // Apps Script belum dikonfigurasi atau sedang tidak bisa diakses.
-
     let db = {
         setup: typeof INIT_SETUP !== 'undefined' ? INIT_SETUP : {},
         toko: typeof INIT_TOKO !== 'undefined' ? INIT_TOKO : [],
@@ -161,11 +154,7 @@
       return match ? parseInt(match[0], 10) : 0;
     }
 
-    // Target bulanan per sales (Visited / Remote-WA), disimpan di db.setup.TARGET_VISITED
-    // dan db.setup.TARGET_REMOTE sebagai list string "NamaPIC:angka". Diedit manual oleh
-    // Sales Manager lewat halaman Setup, otomatis tersimpan ke Google Sheet (sheet Setup).
     function getSalesTargetMap(type) {
-      // type: 'VISITED' atau 'REMOTE'
       let key = type === 'REMOTE' ? 'TARGET_REMOTE' : 'TARGET_VISITED';
       let map = {};
       (db.setup[key] || []).forEach(row => {
@@ -178,7 +167,6 @@
     function getSalesTarget(type, picName) {
       let map = getSalesTargetMap(type);
       if (picName) return map[picName] || 0;
-      // Tidak ada filter PIC (Manager lihat "Semua PIC") -> jumlahkan semua sales
       return Object.values(map).reduce((a, b) => a + b, 0);
     }
 
@@ -250,7 +238,7 @@
     function delPlan(id) { if(confirm('Hapus Visit Plan ini?')) { db.plan = db.plan.filter(p => p.id !== id); setDB('db_plan', db.plan); renderPage('visitplan'); } }
     function delAktifitas(id) { if(confirm('Hapus Aktifitas ini?')) { db.aktifitas = db.aktifitas.filter(a => a.id !== id); setDB('db_aktifitas', db.aktifitas); renderPage('aktifitas'); } }
 
-    function htmlEscapeAttr(str) { return String(str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function htmlEscapeAttr(str) { return String(str || '').replace(/&/g,'&').replace(/"/g,'"').replace(/</g,'<').replace(/>/g,'>'); }
 
     window.updateNextAction = function(id, value) {
       let idx = db.aktifitas.findIndex(a => a.id === id);
@@ -378,9 +366,6 @@
       let fAktifitasCombined = db.aktifitas.filter(a => baseF_Akt(a) && (!fPIC || (a.pic ? a.pic === fPIC : (tokoMap[normKontak(a.kontakToko)] && tokoMap[normKontak(a.kontakToko)].pic === fPIC))) && (!fAgen || (tokoMap[normKontak(a.kontakToko)] && tokoMap[normKontak(a.kontakToko)].orderKe === fAgen)));
       let fIntelCombined = db.intel.filter(i => baseF_Intel(i) && (!fPIC || (i.pic ? i.pic === fPIC : (tokoMap[normKontak(i.kontakToko)] && tokoMap[normKontak(i.kontakToko)].pic === fPIC))) && (!fAgen || (tokoMap[normKontak(i.kontakToko)] && tokoMap[normKontak(i.kontakToko)].orderKe === fAgen)));
       
-      // TOTAL TOKO AKTIF = base count total toko (COUNT baris contactId di tab Toko, sama seperti spreadsheet),
-      // TIDAK di-deduplikasi dan TIDAK terpengaruh filter PIC/Agent/Toko.
-      // Ini dipakai sebagai basis perhitungan target, jadi harus konsisten berapa pun filter yang dipilih.
       let kpi_tokoAktif = db.toko.filter(t => (t.contactId && String(t.contactId).trim() !== '') || (t.kodeKontak && String(t.kodeKontak).trim() !== '')).length;
 
       let c_visited = fPlanCombined.filter(p=>p.status==='Visited').length;
@@ -389,8 +374,6 @@
       let c_overdue = fPlanCombined.filter(p=>p.status==='Overdue').length;
       let c_cancelled = fPlanCombined.filter(p=>p.status==='Cancelled').length;
 
-      // Target Kunjungan per Bulan (Visited) & Target Remote/WA (Contacted) -> kuota tetap
-      // per sales (Ali/Thia), diatur manual oleh Sales Manager di halaman Setup.
       let kpi_targetVisited = getSalesTarget('VISITED', fPIC);
       let kpi_targetRemote = getSalesTarget('REMOTE', fPIC);
 
@@ -400,7 +383,6 @@
       let kpi_persentaseVisited = kpi_targetVisited > 0 ? Math.round((kpi_realisasiVisited / kpi_targetVisited) * 100) : 0;
       let kpi_persentaseRemote = kpi_targetRemote > 0 ? Math.round((kpi_realisasiRemote / kpi_targetRemote) * 100) : 0;
 
-      // Total gabungan (dipakai chart & referensi lama)
       let kpi_realisasi = c_visited + c_contacted;
       let kpi_targetTotal = kpi_targetVisited + kpi_targetRemote;
       let kpi_persentaseTotal = kpi_targetTotal > 0 ? Math.round((kpi_realisasi / kpi_targetTotal) * 100) : 0;
@@ -408,8 +390,7 @@
       let compData = {}; fIntelCombined.forEach(i => { let k = i.kompetitor || 'Unknown'; if(k) compData[k] = (compData[k] || 0) + 1; });
       let issueData = {}; fAktifitasCombined.forEach(a => { if(a.keluhanFeedback && a.keluhanFeedback !== 'Tidak ada keluhan') issueData[a.keluhanFeedback] = (issueData[a.keluhanFeedback] || 0) + 1; });
       let samplingData = {}; fAktifitasCombined.forEach(a => { if(a.kategoriSampling) samplingData[a.kategoriSampling] = (samplingData[a.kategoriSampling] || 0) + 1; });
-      // KEPATUHAN FOTO per PIC: ambil dari Tab Aktifitas (linkFoto/linkTersedia), dipecah per PIC (Ali/Thia/dst)
-      // Status dihitung ulang dari linkFoto kalau field linkTersedia kosong/tidak konsisten (data lama).
+
       let lampiranByPIC = {};
       db.setup.PIC.forEach(p => { lampiranByPIC[p] = { 'Melampirkan': 0, 'Tidak Melampirkan': 0 }; });
       fAktifitasCombined.forEach(a => {
@@ -417,7 +398,7 @@
         let statusFotoA = (a.linkTersedia === 'Melampirkan' || a.linkTersedia === 'Tidak Melampirkan' || a.linkTersedia === 'Tidak Wajib')
           ? a.linkTersedia
           : ((a.linkFoto && a.linkFoto.trim() !== '') ? 'Melampirkan' : 'Tidak Melampirkan');
-        if (statusFotoA === 'Tidak Wajib') return; // PIC Ali + Remote Coverage: tidak dihitung KPI kepatuhan foto
+        if (statusFotoA === 'Tidak Wajib') return; 
         if (!lampiranByPIC[picNama]) lampiranByPIC[picNama] = { 'Melampirkan': 0, 'Tidak Melampirkan': 0 };
         lampiranByPIC[picNama][statusFotoA]++;
       });
@@ -455,7 +436,7 @@
 
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div class="card border-t-4 border-[#a18cd1] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TOTAL TOKO AKTIF</p><h2 class="text-3xl font-bold mt-1 text-white">${kpi_tokoAktif}</h2></div>
-            <div class="card border-t-4 border-[#a18cd1] shadow-md">
+            <div class="card border-t-4 border-[#fbc2eb] shadow-md">
               <p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TARGET KUNJUNGAN PER BULAN</p>
               <h2 class="text-3xl font-bold mt-1 text-[#fbc2eb]">${kpi_targetVisited}</h2>
             </div>
@@ -573,7 +554,7 @@
         let picList = db.setup.PIC || [];
         html += `<div class="card mb-6 border-t-4 border-[#fbc2eb] shadow-md">
           <h3 class="font-bold text-[#fbc2eb] text-lg mb-1">🎯 Target Bulanan Sales</h3>
-          <p class="text-xs text-[var(--text-muted)] mb-4">Diedit oleh Sales Manager. Otomatis dipakai di kartu "Target Kunjungan per Bulan" &amp; "Target Remote/WA" di Dashboard, dan tersimpan ke Google Sheet (sheet Setup).</p>
+          <p class="text-xs text-[var(--text-muted)] mb-4">Diedit oleh Sales Manager. Otomatis dipakai di kartu "Target Kunjungan per Bulan" & "Target Remote/WA" di Dashboard, dan tersimpan ke Google Sheet (sheet Setup).</p>
           <form onsubmit="saveTargetForm(event)">
             <table class="mb-4"><thead><tr><th>SALES (PIC)</th><th>TARGET VISITED / BULAN</th><th>TARGET REMOTE/WA / BULAN</th></tr></thead>
             <tbody>
@@ -591,7 +572,7 @@
       html += `<div class="grid grid-cols-2 lg:grid-cols-3 gap-6">`;
 
       for(let key in db.setup) {
-        if (key === 'TARGET_VISITED' || key === 'TARGET_REMOTE') continue; // dikelola lewat form khusus di atas
+        if (key === 'TARGET_VISITED' || key === 'TARGET_REMOTE') continue; 
         let displayKey = key.replace(/_/g, ' ');
         html += `<div class="card flex flex-col h-full"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-[var(--accent)] text-lg">${displayKey}</h3><button onclick="addSetup('${key}')" class="text-xs btn-primary px-3 py-1 rounded shadow">+ Add</button></div><ul class="text-sm flex-1 overflow-y-auto max-h-60 pr-2">`;
         if (!db.setup[key] || db.setup[key].length === 0) { html += `<li class="text-[var(--text-muted)] italic">Belum ada data</li>`; }
@@ -965,9 +946,9 @@
         </div>`;
     }
 
-    // PIC Ali + Remote Coverage = link foto kunjungan tidak wajib & tidak dihitung KPI kepatuhan foto
+    // Pengecualian Foto: True jika PIC Ali DAN jenis kunjungan BUKAN Kunjungan Fisik
     function isFotoExempt(pic, jenisKunjungan) {
-      return (pic || '').trim() === 'Ali' && (jenisKunjungan || '').includes('Remote');
+      return (pic || '').trim() === 'Ali' && (jenisKunjungan || '').trim() !== 'Kunjungan Fisik';
     }
 
     window.updateFotoRequirement = function() {
@@ -977,7 +958,7 @@
       if (!picEl || !jenisEl || !labelEl) return;
       let exempt = isFotoExempt(picEl.value, jenisEl.value);
       labelEl.textContent = exempt
-        ? 'LINK FOTO KUNJUNGAN (Tidak Wajib - Remote Coverage PIC Ali)'
+        ? 'LINK FOTO KUNJUNGAN (Tidak Wajib - Non-Fisik PIC Ali)'
         : 'LINK FOTO KUNJUNGAN (Wajib / Poin -)';
       labelEl.className = exempt ? 'text-xs text-[var(--text-muted)]' : 'text-xs';
     }
@@ -1154,7 +1135,7 @@
     window.onload = async () => {
         showCloudStatus('⏳ Memuat data dari Google Sheet...');
         try {
-            const cloudData = await cloudGetAll(); // dari db-cloud.js
+            const cloudData = await cloudGetAll(); 
             if (cloudData) {
                 db.setup = cloudData.setup && Object.keys(cloudData.setup).length ? cloudData.setup : db.setup;
                 db.toko = cloudData.toko && cloudData.toko.length ? cloudData.toko : db.toko;
