@@ -16,35 +16,78 @@
         --accent: #0d99ff;
         --purple-grad: linear-gradient(135deg, #0d99ff 0%, #58bad7 100%);
     }
-    body { background-color: var(--bg-dark); color: var(--text-main); font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    body { background-color: var(--bg-dark); color: var(--text-main); font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, sans-serif; margin: 0; min-height: 100vh; }
+    .auth-wrapper { display: flex; min-height: 100vh; }
+    .auth-info {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(13,153,255,.25), transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(88,186,215,.2), transparent 50%),
+        linear-gradient(160deg, #1e1e1e 0%, #17324a 130%);
+      text-align: center;
+    }
+    .auth-info .logo-mark {
+      width: 64px; height: 64px; border-radius: 18px; background: var(--purple-grad);
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 22px;
+      box-shadow: 0 10px 30px rgba(13,153,255,.35);
+    }
+    .auth-info h1 { font-size: 26px; font-weight: 800; letter-spacing: .04em; margin: 0 0 10px; }
+    .auth-info p { font-size: 13.5px; color: #a3a3a3; max-width: 340px; margin: 0 auto; line-height: 1.6; }
+    .auth-info .stat-row { display: flex; gap: 28px; margin-top: 36px; }
+    .auth-info .stat-row div { text-align: center; }
+    .auth-info .stat-row .n { font-size: 20px; font-weight: 700; color: var(--accent); }
+    .auth-info .stat-row .l { font-size: 10.5px; color: #a3a3a3; text-transform: uppercase; letter-spacing: .06em; }
+    .auth-form-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px; }
     .card { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 1rem; padding: 32px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); width: 100%; max-width: 380px; }
     .input-field { width: 100%; background-color: var(--bg-dark); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 0.5rem; margin-top: 8px; margin-bottom: 16px; }
     .input-field:focus { outline: none; border-color: var(--accent); }
     .btn-primary { width: 100%; padding: 12px; border-radius: 0.5rem; background: var(--purple-grad); color: #ffffff; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; font-size: 14px; box-shadow: 0 4px 12px rgba(13, 153, 255, 0.3); }
     .btn-primary:hover { opacity: 0.9; transform: translateY(-2px); }
+    @media (max-width: 900px) { .auth-info { display: none; } }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold tracking-wider text-[var(--accent)] mb-1">RETAIL SUPPORT</h1>
-        <p class="text-xs text-[#58bad7]">CRM System - Manager & Sales Edition</p>
-    </div>
-    
-    <form id="loginForm">
-      <label class="text-xs font-bold text-[#58bad7] tracking-wider">USER ID</label>
-      <input type="text" id="userId" class="input-field" required placeholder="Masukkan ID Account..." autocomplete="off">
-      
-      <label class="text-xs font-bold text-[#58bad7] tracking-wider">PASSWORD</label>
-      <input type="password" id="userPass" class="input-field" required placeholder="Masukkan Password...">
-      
-      <div id="errorMsg" class="bg-red-900/40 border border-red-500 text-red-300 text-xs p-3 rounded mb-4 hidden text-center">
-        ❌ USER ID atau Password salah!
+  <div class="auth-wrapper">
+    <div class="auth-info">
+      <div>
+        <div class="logo-mark">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 21V9L12 3L21 9V21H14V14H10V21H3Z" fill="white"/>
+          </svg>
+        </div>
+        <h1>RETAIL SUPPORT</h1>
+        <p>Dashboard CRM untuk memantau kunjungan toko, aktivitas sales, dan laporan intelejen kompetitor secara real-time.</p>
+        <div class="stat-row">
+          <div><div class="n">3</div><div class="l">Role Akses</div></div>
+          <div><div class="n">6</div><div class="l">Modul</div></div>
+          <div><div class="n">Live</div><div class="l">Sync Sheet</div></div>
+        </div>
       </div>
-      
-      <button type="submit" class="btn-primary mt-2">LOGIN KE SISTEM</button>
-    </form>
+    </div>
+
+    <div class="auth-form-wrap">
+      <div class="card">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold tracking-wider text-[var(--accent)] mb-1">RETAIL SUPPORT</h1>
+            <p class="text-xs text-[#58bad7]">CRM System - Manager & Sales Edition</p>
+        </div>
+
+        <form id="loginForm">
+          <label class="text-xs font-bold text-[#58bad7] tracking-wider">USER ID</label>
+          <input type="text" id="userId" class="input-field" required placeholder="Masukkan ID Account..." autocomplete="off">
+
+          <label class="text-xs font-bold text-[#58bad7] tracking-wider">PASSWORD</label>
+          <input type="password" id="userPass" class="input-field" required placeholder="Masukkan Password...">
+
+          <div id="errorMsg" class="bg-red-900/40 border border-red-500 text-red-300 text-xs p-3 rounded mb-4 hidden text-center">
+            ❌ USER ID atau Password salah!
+          </div>
+
+          <button type="submit" class="btn-primary mt-2">LOGIN KE SISTEM</button>
+        </form>
+      </div>
+    </div>
   </div>
 
   <script>
