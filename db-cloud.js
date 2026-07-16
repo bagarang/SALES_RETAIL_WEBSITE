@@ -74,9 +74,9 @@ function showCloudStatus(message, isError) {
   if (!bar) return;
   bar.textContent = message;
   bar.style.display = 'block';
-  bar.style.background = isError ? '#ef4444' : '#2a2438';
+  bar.style.background = isError ? '#ff5e5e' : '#242424';
   bar.style.color = '#ffffff';
-  bar.style.border = isError ? '1px solid #7f1d1d' : '1px solid #443c5a';
+  bar.style.border = isError ? '1px solid #7f1d1d' : '1px solid #444444';
 
   clearTimeout(cloudStatusTimer);
   if (!isError) {

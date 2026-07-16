@@ -16,20 +16,23 @@
   <script src="db_intel.js"></script>
   <script src="db-cloud.js"></script>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
   <style>
     :root { 
-        --bg-dark: #1e1b2e; 
-        --bg-panel: #2a2438; 
-        --text-main: #f8fafc; 
-        --text-muted: #a39eb5; 
-        --border: #443c5a; 
-        --accent: #ff9a9e; 
-        --accent-hover: #ff7b82; 
-        --accent-glow: rgba(255, 154, 158, 0.15);
-        --danger: #ef4444; 
-        --purple-grad: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+        --bg-dark: #1e1e1e; 
+        --bg-panel: #242424; 
+        --text-main: #ffffff; 
+        --text-muted: #a3a3a3; 
+        --border: #444444; 
+        --accent: #0d99ff; 
+        --accent-hover: #3aacff; 
+        --accent-glow: rgba(13, 153, 255, 0.15);
+        --danger: #ff5e5e; 
+        --purple-grad: linear-gradient(135deg, #0d99ff 0%, #58bad7 100%);
     }
-    body { background-color: var(--bg-dark); color: var(--text-main); font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif; overflow-x: hidden; }
+    body { background-color: var(--bg-dark); color: var(--text-main); font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif; overflow-x: hidden; }
     
     ::-webkit-scrollbar { width: 10px; height: 10px; }
     ::-webkit-scrollbar-track { background: var(--bg-dark); border-radius: 4px; }
@@ -40,11 +43,11 @@
     .nav-btn { display: block; width: 100%; text-align: left; padding: 12px 20px; color: var(--text-muted); border-left: 3px solid transparent; cursor: pointer; transition: 0.2s; }
     .nav-btn:hover { background-color: rgba(255,255,255,0.05); }
     .nav-btn.active { background-color: var(--accent-glow); color: var(--accent); border-left-color: var(--accent); font-weight: 600; }
-    .card { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    .card { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 1rem; padding: 20px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15); }
     
     .table-wrapper { overflow: auto; max-height: calc(100vh - 160px); }
     
-    .input-field { width: 100%; background-color: var(--bg-dark); border: 1px solid var(--border); color: white; padding: 8px 12px; border-radius: 6px; margin-top: 4px; }
+    .input-field { width: 100%; background-color: var(--bg-dark); border: 1px solid var(--border); color: white; padding: 8px 12px; border-radius: 0.5rem; margin-top: 4px; }
     .input-field:focus { outline: none; border-color: var(--accent); }
     .input-field:disabled, .input-field[readonly] { opacity: 0.6; cursor: not-allowed; }
     
@@ -65,15 +68,15 @@
     td { padding: 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
     tr:hover td { background-color: rgba(255,255,255,0.03); }
     
-    .btn { padding: 8px 16px; border-radius: 6px; font-weight: 500; cursor: pointer; transition: 0.2s; border: none;}
-    .btn-primary { background: var(--purple-grad); color: #1e1b2e; font-weight: 700; }
+    .btn { padding: 8px 16px; border-radius: 0.5rem; font-weight: 500; cursor: pointer; transition: 0.2s; border: none;}
+    .btn-primary { background: var(--purple-grad); color: #ffffff; font-weight: 700; box-shadow: 0 4px 12px rgba(13, 153, 255, 0.3); }
     .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
     .btn-secondary { background-color: var(--border); color: white; }
-    .btn-secondary:hover { background-color: #554d6e; }
-    .btn-warning { background-color: #f59e0b; color: #1e1b2e; font-weight: bold; }
-    .badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .btn-secondary:hover { background-color: #5a5a5a; }
+    .btn-warning { background-color: #ff9f00; color: #ffffff; font-weight: bold; }
+    .badge { padding: 4px 10px; border-radius: 50rem; font-size: 12px; font-weight: 600; }
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 50; align-items: center; justify-content: center; }
-    .modal-content { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; padding: 24px; }
+    .modal-content { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 1rem; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; padding: 24px; }
   </style>
 </head>
 <body class="flex h-screen">
@@ -83,7 +86,7 @@
       <h1 class="text-xl font-bold tracking-wider text-[var(--accent)]">RETAIL SUPPORT</h1>
     </div>
     
-    <div class="px-6 py-4 border-b border-[var(--border)] bg-[#1e1b2e]">
+    <div class="px-6 py-4 border-b border-[var(--border)] bg-[#1e1e1e]">
         <label class="text-[10px] text-[var(--accent)] font-bold tracking-wider">LOGGED IN AS:</label>
         <div id="userProfileDisplay" class="text-white font-bold text-sm mt-1 mb-3">👤 Memuat...</div>
         <button onclick="logoutSystem()" class="btn btn-secondary w-full text-xs py-2 bg-red-900/30 hover:bg-red-900/60 text-red-300 border border-red-900">🚪 Log Out</button>
@@ -416,7 +419,7 @@
         .sort((a, b) => new Date(b.tanggalKunjungan) - new Date(a.tanggalKunjungan))
         .slice(0, 5);
 
-      let picFilterHtml = isManager ? `<div><label class="text-xs text-[#a18cd1] font-bold mb-1 block">FILTER PIC</label><select id="dashPIC" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua PIC --</option>${optionsHtml(db.setup.PIC, fPIC)}</select></div>` : '';
+      let picFilterHtml = isManager ? `<div><label class="text-xs text-[#58bad7] font-bold mb-1 block">FILTER PIC</label><select id="dashPIC" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua PIC --</option>${optionsHtml(db.setup.PIC, fPIC)}</select></div>` : '';
 
       c.innerHTML = `
         <div class="flex justify-between items-center mb-6">
@@ -427,39 +430,39 @@
             </div>
         </div>
         
-        <div class="card bg-[#352f4a] border-[var(--border)] mb-6 shadow-md">
+        <div class="card bg-[#2f2f2f] border-[var(--border)] mb-6 shadow-md">
             <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                <div><label class="text-xs text-[var(--accent)] font-bold mb-1 block">TANGGAL MULAI</label><input type="date" id="dashStart" value="${fStart}" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"></div>
                <div><label class="text-xs text-[var(--accent)] font-bold mb-1 block">TANGGAL AKHIR</label><input type="date" id="dashEnd" value="${fEnd}" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"></div>
-               <div><label class="text-xs text-[#a18cd1] font-bold mb-1 block">FILTER TOKO</label><select id="dashToko" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua Toko --</option>${optToko}</select></div>
-               <div><label class="text-xs text-[#a18cd1] font-bold mb-1 block">FILTER AGENT</label><select id="dashAgen" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua Agent --</option>${optionsHtml(db.setup.ORDER_KE, fAgen)}</select></div>
+               <div><label class="text-xs text-[#58bad7] font-bold mb-1 block">FILTER TOKO</label><select id="dashToko" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua Toko --</option>${optToko}</select></div>
+               <div><label class="text-xs text-[#58bad7] font-bold mb-1 block">FILTER AGENT</label><select id="dashAgen" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua Agent --</option>${optionsHtml(db.setup.ORDER_KE, fAgen)}</select></div>
                ${picFilterHtml}
             </div>
         </div>
 
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-            <div class="card border-t-4 border-[#a18cd1] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TOTAL TOKO AKTIF</p><h2 class="text-3xl font-bold mt-1 text-white">${kpi_tokoAktif}</h2></div>
-            <div class="card border-t-4 border-[#fbc2eb] shadow-md">
+            <div class="card border-t-4 border-[#58bad7] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TOTAL TOKO AKTIF</p><h2 class="text-3xl font-bold mt-1 text-white">${kpi_tokoAktif}</h2></div>
+            <div class="card border-t-4 border-[#3ac977] shadow-md">
               <p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TARGET KUNJUNGAN PER BULAN</p>
-              <h2 class="text-3xl font-bold mt-1 text-[#fbc2eb]">${kpi_targetVisited}</h2>
+              <h2 class="text-3xl font-bold mt-1 text-[#3ac977]">${kpi_targetVisited}</h2>
             </div>
             <div class="card border-t-4 border-[var(--accent)] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">REALISASI VISITED</p><h2 class="text-3xl font-bold mt-1 text-[var(--accent)]">${kpi_realisasiVisited}</h2></div>
             <div class="card border-t-4 border-[var(--accent)] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">% PENCAPAIAN VISITED</p><h2 class="text-3xl font-bold mt-1 ${kpi_persentaseVisited >= 100 ? 'text-green-400' : 'text-yellow-400'}">${kpi_persentaseVisited}%</h2></div>
         </div>
         <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-            <div class="card border-t-4 border-[#ff9a9e] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TARGET REMOTE/WA PER BULAN</p><h2 class="text-3xl font-bold mt-1 text-[#ff9a9e]">${kpi_targetRemote}</h2></div>
-            <div class="card border-t-4 border-[#ff9a9e] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">REALISASI REMOTE/WA (CONTACTED)</p><h2 class="text-3xl font-bold mt-1 text-[#ff9a9e]">${kpi_realisasiRemote}</h2></div>
-            <div class="card border-t-4 border-[#ff9a9e] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">% PENCAPAIAN REMOTE/WA</p><h2 class="text-3xl font-bold mt-1 ${kpi_persentaseRemote >= 100 ? 'text-green-400' : 'text-yellow-400'}">${kpi_persentaseRemote}%</h2></div>
+            <div class="card border-t-4 border-[#0d99ff] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TARGET REMOTE/WA PER BULAN</p><h2 class="text-3xl font-bold mt-1 text-[#0d99ff]">${kpi_targetRemote}</h2></div>
+            <div class="card border-t-4 border-[#0d99ff] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">REALISASI REMOTE/WA (CONTACTED)</p><h2 class="text-3xl font-bold mt-1 text-[#0d99ff]">${kpi_realisasiRemote}</h2></div>
+            <div class="card border-t-4 border-[#0d99ff] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">% PENCAPAIAN REMOTE/WA</p><h2 class="text-3xl font-bold mt-1 ${kpi_persentaseRemote >= 100 ? 'text-green-400' : 'text-yellow-400'}">${kpi_persentaseRemote}%</h2></div>
             <div class="card border-t-4 border-slate-500 shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TOTAL REALISASI (VISITED+REMOTE)</p><h2 class="text-3xl font-bold mt-1 text-white">${kpi_realisasi}</h2><p class="text-[10px] text-[var(--text-muted)] mt-1">dari target ${kpi_targetTotal}</p></div>
             <div class="card border-t-4 border-slate-500 shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">% PENCAPAIAN TOTAL</p><h2 class="text-3xl font-bold mt-1 ${kpi_persentaseTotal >= 100 ? 'text-green-400' : 'text-yellow-400'}">${kpi_persentaseTotal}%</h2></div>
         </div>
 
         <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[var(--accent)]">STATUS KUNJUNGAN</h3><div class="flex-1 relative w-full h-full"><canvas id="chartKunjungan"></canvas></div></div>
-            <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[#a18cd1]">KATEGORI KOMPLAIN</h3><div class="flex-1 relative w-full h-full"><canvas id="chartIssue"></canvas></div></div>
+            <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[#58bad7]">KATEGORI KOMPLAIN</h3><div class="flex-1 relative w-full h-full"><canvas id="chartIssue"></canvas></div></div>
             <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[var(--accent)]">KATEGORI SAMPLING</h3><div class="flex-1 relative w-full h-full"><canvas id="chartSampling"></canvas></div></div>
             <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-yellow-500">KEPATUHAN FOTO (PIC)</h3><div class="flex-1 relative w-full h-full"><canvas id="chartLampiran"></canvas></div></div>
-            <div class="card h-64 flex flex-col lg:col-span-2 shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[#a18cd1]">LAPORAN KOMPETITOR</h3><div class="flex-1 relative w-full h-full"><canvas id="chartKompetitor"></canvas></div></div>
+            <div class="card h-64 flex flex-col lg:col-span-2 shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[#58bad7]">LAPORAN KOMPETITOR</h3><div class="flex-1 relative w-full h-full"><canvas id="chartKompetitor"></canvas></div></div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -468,7 +471,7 @@
               <div class="overflow-x-auto flex-1">
               <table>
                 <thead><tr><th>NAMA TOKO</th><th>TGL KUNJUNGAN</th><th>AKTIFITAS</th><th>STATUS</th></tr></thead>
-                <tbody>${fAktifitasCombined.length > 0 ? fAktifitasCombined.slice(-5).reverse().map(a => `<tr><td class="font-bold text-[var(--accent)]">${a.namaToko}</td><td>${a.tanggalKunjungan}</td><td><span class="badge" style="background:var(--purple-grad); color:#1e1b2e">${a.aktifitas}</span></td><td><span class="badge" style="background:var(--border); color:#fff">${a.status}</span></td></tr>`).join('') : `<tr><td colspan="4" class="text-center text-[var(--text-muted)] py-4">Tidak ada data.</td></tr>`}</tbody>
+                <tbody>${fAktifitasCombined.length > 0 ? fAktifitasCombined.slice(-5).reverse().map(a => `<tr><td class="font-bold text-[var(--accent)]">${a.namaToko}</td><td>${a.tanggalKunjungan}</td><td><span class="badge" style="background:var(--purple-grad); color:#ffffff">${a.aktifitas}</span></td><td><span class="badge" style="background:var(--border); color:#fff">${a.status}</span></td></tr>`).join('') : `<tr><td colspan="4" class="text-center text-[var(--text-muted)] py-4">Tidak ada data.</td></tr>`}</tbody>
               </table>
               </div>
             </div>
@@ -480,10 +483,10 @@
                 <thead><tr><th>NAMA TOKO</th><th>TUJUAN KUNJUNGAN</th><th>PLAN DATE</th><th>PRIORITY</th></tr></thead>
                 <tbody>
                   ${upcomingPlan.length > 0 ? upcomingPlan.slice(0, 5).map(p => `<tr>
-                    <td class="font-bold text-[#fbc2eb]">${p.namaToko}</td>
+                    <td class="font-bold text-[#3ac977]">${p.namaToko}</td>
                     <td>${p.tujuanKunjungan}</td>
                     <td>${p.planDate}</td>
-                    <td><span class="badge" style="background:${p.priority==='High'?'var(--danger)':'#f59e0b'}; color:#1e1b2e">${p.priority}</span></td>
+                    <td><span class="badge" style="background:${p.priority==='High'?'var(--danger)':'#ff9f00'}; color:#ffffff">${p.priority}</span></td>
                   </tr>`).join('') : `<tr><td colspan="4" class="text-center text-[var(--text-muted)] py-4">Tidak ada jadwal terdekat.</td></tr>`}
                 </tbody>
               </table>
@@ -492,7 +495,7 @@
         </div>
 
         <div class="card flex flex-col shadow-md mt-6">
-            <h3 class="font-bold text-sm mb-4 text-[#a18cd1]">LAPORAN KOMPETITOR TERBARU (5 Terakhir)</h3>
+            <h3 class="font-bold text-sm mb-4 text-[#58bad7]">LAPORAN KOMPETITOR TERBARU (5 Terakhir)</h3>
             <div class="overflow-x-auto">
             <table>
                 <thead><tr><th>TANGGAL</th><th>NAMA TOKO</th><th>PIC</th><th>KOMPETITOR</th><th>KETERANGAN DETAIL</th></tr></thead>
@@ -500,8 +503,8 @@
                   ${fIntelCombined.length > 0 ? fIntelCombined.slice(-5).reverse().map(i => `<tr>
                     <td>${i.date}</td>
                     <td class="font-bold text-[var(--accent)]">${i.namaToko}</td>
-                    <td class="font-bold text-[#fbc2eb]">${i.pic || '-'}</td>
-                    <td class="text-[#ff9a9e] font-bold">${i.kompetitor || '-'}</td>
+                    <td class="font-bold text-[#3ac977]">${i.pic || '-'}</td>
+                    <td class="text-[#0d99ff] font-bold">${i.kompetitor || '-'}</td>
                     <td class="text-xs whitespace-normal max-w-xs break-words">${i.keteranganDetail || '-'}</td>
                   </tr>`).join('') : `<tr><td colspan="5" class="text-center text-[var(--text-muted)] py-4">Belum ada laporan intelejen.</td></tr>`}
                 </tbody>
@@ -510,17 +513,17 @@
         </div>
 
         <div class="card flex flex-col shadow-md mt-6">
-            <h3 class="font-bold text-sm mb-4 text-[#ff9a9e]">TAB KELUHAN & NEXT ACTION</h3>
+            <h3 class="font-bold text-sm mb-4 text-[#0d99ff]">TAB KELUHAN & NEXT ACTION</h3>
             <div class="overflow-x-auto">
             <table>
                 <thead><tr><th>NAMA TOKO</th><th>TANGGAL</th><th>KATEGORI</th><th>PENJELASAN KELUHAN</th><th>NEXT ACTION</th></tr></thead>
                 <tbody>
                   ${actionTableData.length > 0 ? actionTableData.map(a => `<tr>
-                    <td class="font-bold text-[#fbc2eb]">${a.namaToko}</td>
+                    <td class="font-bold text-[#3ac977]">${a.namaToko}</td>
                     <td>${a.tanggalKunjungan}</td>
                     <td class="text-[var(--danger)] font-bold">${a.keluhanFeedback || '-'}</td>
                     <td class="text-xs whitespace-normal max-w-xs">${a.keterangan || '-'}</td>
-                    <td class="text-xs whitespace-normal max-w-xs text-yellow-200">${isManager ? `<input type="text" class="input-field text-xs mt-0" style="min-width:180px" value="${htmlEscapeAttr(a.nextAction)}" placeholder="Isi next action..." onchange="updateNextAction('${a.id}', this.value); this.style.borderColor='#10b981'; setTimeout(()=>{this.style.borderColor='';}, 800);">` : (a.nextAction || '-')}</td>
+                    <td class="text-xs whitespace-normal max-w-xs text-yellow-200">${isManager ? `<input type="text" class="input-field text-xs mt-0" style="min-width:180px" value="${htmlEscapeAttr(a.nextAction)}" placeholder="Isi next action..." onchange="updateNextAction('${a.id}', this.value); this.style.borderColor='#3ac977'; setTimeout(()=>{this.style.borderColor='';}, 800);">` : (a.nextAction || '-')}</td>
                   </tr>`).join('') : `<tr><td colspan="5" class="text-center text-[var(--text-muted)] py-4">Tidak ada keluhan dengan aksi tercatat.</td></tr>`}
                 </tbody>
             </table>
@@ -532,13 +535,13 @@
       ['chartKunjungan', 'chartLampiran', 'chartIssue', 'chartSampling', 'chartKompetitor'].forEach(id => { if(window.myCharts[id]) window.myCharts[id].destroy(); });
 
       setTimeout(() => {
-        let optG = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: {color: '#f8fafc', font:{size:10}} } } };
+        let optG = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: {color: '#ffffff', font:{size:10}} } } };
         
-        if(document.getElementById('chartKunjungan')) window.myCharts['chartKunjungan'] = new Chart(document.getElementById('chartKunjungan'), { type: 'doughnut', data: { labels: ['Visited', 'Contacted', 'Scheduled', 'Overdue', 'Cancelled'], datasets: [{ data: [c_visited, c_contacted, c_scheduled, c_overdue, c_cancelled], backgroundColor: ['#ff9a9e', '#fbc2eb', '#a18cd1', '#ef4444', '#94a3b8'], borderWidth: 0 }] }, options: optG });
-        if(document.getElementById('chartLampiran')) window.myCharts['chartLampiran'] = new Chart(document.getElementById('chartLampiran'), { type: 'bar', data: { labels: picLampiranLabels, datasets: [ { label: 'Melampirkan', data: picLampiranLabels.map(p => lampiranByPIC[p]['Melampirkan']), backgroundColor: '#10b981' }, { label: 'Tidak Melampirkan', data: picLampiranLabels.map(p => lampiranByPIC[p]['Tidak Melampirkan']), backgroundColor: '#ef4444' } ] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, ticks: {color: '#94a3b8'} }, y: { stacked: true, beginAtZero: true, ticks: {color: '#94a3b8'} } }, plugins: { legend: { position: 'bottom', labels: {color: '#f8fafc', font:{size:10}} } } } });
-        if(document.getElementById('chartIssue')) window.myCharts['chartIssue'] = new Chart(document.getElementById('chartIssue'), { type: 'pie', data: { labels: Object.keys(issueData).length ? Object.keys(issueData) : ['Aman'], datasets: [{ data: Object.keys(issueData).length ? Object.values(issueData) : [1], backgroundColor: ['#fbc2eb', '#a18cd1', '#ff9a9e', '#ff7b82'], borderWidth: 0 }] }, options: optG });
-        if(document.getElementById('chartSampling')) window.myCharts['chartSampling'] = new Chart(document.getElementById('chartSampling'), { type: 'polarArea', data: { labels: Object.keys(samplingData).length ? Object.keys(samplingData) : ['N/A'], datasets: [{ data: Object.keys(samplingData).length ? Object.values(samplingData) : [1], backgroundColor: ['rgba(255, 154, 158, 0.7)', 'rgba(161, 140, 209, 0.7)', 'rgba(251, 194, 235, 0.7)'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { display: false } } } });
-        if(document.getElementById('chartKompetitor')) window.myCharts['chartKompetitor'] = new Chart(document.getElementById('chartKompetitor'), { type: 'bar', data: { labels: Object.keys(compData).length ? Object.keys(compData) : ['Belum Ada'], datasets: [{ label: 'Laporan', data: Object.keys(compData).length ? Object.values(compData) : [0], backgroundColor: '#a18cd1' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: {color: '#94a3b8'} }, x: { ticks: {color: '#94a3b8'} } }, plugins: { legend: { display: false } } } });
+        if(document.getElementById('chartKunjungan')) window.myCharts['chartKunjungan'] = new Chart(document.getElementById('chartKunjungan'), { type: 'doughnut', data: { labels: ['Visited', 'Contacted', 'Scheduled', 'Overdue', 'Cancelled'], datasets: [{ data: [c_visited, c_contacted, c_scheduled, c_overdue, c_cancelled], backgroundColor: ['#0d99ff', '#3ac977', '#58bad7', '#ff5e5e', '#9a9a9a'], borderWidth: 0 }] }, options: optG });
+        if(document.getElementById('chartLampiran')) window.myCharts['chartLampiran'] = new Chart(document.getElementById('chartLampiran'), { type: 'bar', data: { labels: picLampiranLabels, datasets: [ { label: 'Melampirkan', data: picLampiranLabels.map(p => lampiranByPIC[p]['Melampirkan']), backgroundColor: '#3ac977' }, { label: 'Tidak Melampirkan', data: picLampiranLabels.map(p => lampiranByPIC[p]['Tidak Melampirkan']), backgroundColor: '#ff5e5e' } ] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, ticks: {color: '#9a9a9a'} }, y: { stacked: true, beginAtZero: true, ticks: {color: '#9a9a9a'} } }, plugins: { legend: { position: 'bottom', labels: {color: '#ffffff', font:{size:10}} } } } });
+        if(document.getElementById('chartIssue')) window.myCharts['chartIssue'] = new Chart(document.getElementById('chartIssue'), { type: 'pie', data: { labels: Object.keys(issueData).length ? Object.keys(issueData) : ['Aman'], datasets: [{ data: Object.keys(issueData).length ? Object.values(issueData) : [1], backgroundColor: ['#3ac977', '#58bad7', '#0d99ff', '#3aacff'], borderWidth: 0 }] }, options: optG });
+        if(document.getElementById('chartSampling')) window.myCharts['chartSampling'] = new Chart(document.getElementById('chartSampling'), { type: 'polarArea', data: { labels: Object.keys(samplingData).length ? Object.keys(samplingData) : ['N/A'], datasets: [{ data: Object.keys(samplingData).length ? Object.values(samplingData) : [1], backgroundColor: ['rgba(13, 153, 255, 0.7)', 'rgba(88, 186, 215, 0.7)', 'rgba(58, 201, 119, 0.7)'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { display: false } } } });
+        if(document.getElementById('chartKompetitor')) window.myCharts['chartKompetitor'] = new Chart(document.getElementById('chartKompetitor'), { type: 'bar', data: { labels: Object.keys(compData).length ? Object.keys(compData) : ['Belum Ada'], datasets: [{ label: 'Laporan', data: Object.keys(compData).length ? Object.values(compData) : [0], backgroundColor: '#58bad7' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: {color: '#9a9a9a'} }, x: { ticks: {color: '#9a9a9a'} } }, plugins: { legend: { display: false } } } });
       }, 50);
     }
 
@@ -552,8 +555,8 @@
         let vMap = getSalesTargetMap('VISITED');
         let rMap = getSalesTargetMap('REMOTE');
         let picList = db.setup.PIC || [];
-        html += `<div class="card mb-6 border-t-4 border-[#fbc2eb] shadow-md">
-          <h3 class="font-bold text-[#fbc2eb] text-lg mb-1">🎯 Target Bulanan Sales</h3>
+        html += `<div class="card mb-6 border-t-4 border-[#3ac977] shadow-md">
+          <h3 class="font-bold text-[#3ac977] text-lg mb-1">🎯 Target Bulanan Sales</h3>
           <p class="text-xs text-[var(--text-muted)] mb-4">Diedit oleh Sales Manager. Otomatis dipakai di kartu "Target Kunjungan per Bulan" &amp; "Target Remote/WA" di Dashboard, dan tersimpan ke Google Sheet (sheet Setup).</p>
           <form onsubmit="saveTargetForm(event)">
             <table class="mb-4"><thead><tr><th>SALES (PIC)</th><th>TARGET VISITED / BULAN</th><th>TARGET REMOTE/WA / BULAN</th></tr></thead>
@@ -615,9 +618,9 @@
 
       let rows = filteredToko.map(t => {
         let statusColor = (t.status === 'Inactive' || t.status === 'Non Aktif (Nomer Tidak dapat dihubungi)') ? 'var(--danger)' : 
-                          (t.status === 'Active') ? '#10b981' : 
-                          (t.status === 'Prospect') ? '#f59e0b' : 'var(--accent)';
-        let actBtns = isManager ? `<button onclick="formToko('${t.contactId}')" class="text-xs text-[#a18cd1] hover:text-white font-bold mr-2">Edit</button><button onclick="delToko('${t.contactId}')" class="text-xs text-[var(--danger)] hover:text-white font-bold">Del</button>` : `<span class="text-[10px] text-gray-500">Read Only</span>`;
+                          (t.status === 'Active') ? '#3ac977' : 
+                          (t.status === 'Prospect') ? '#ff9f00' : 'var(--accent)';
+        let actBtns = isManager ? `<button onclick="formToko('${t.contactId}')" class="text-xs text-[#58bad7] hover:text-white font-bold mr-2">Edit</button><button onclick="delToko('${t.contactId}')" class="text-xs text-[var(--danger)] hover:text-white font-bold">Del</button>` : `<span class="text-[10px] text-gray-500">Read Only</span>`;
         return `<tr>
           <td class="text-xs text-[var(--text-muted)]">${t.contactId}</td>
           <td class="font-bold text-[var(--accent)]">${t.namaToko}</td>
@@ -625,10 +628,10 @@
           <td class="text-xs">${t.jobTitle || '-'}</td>
           <td>${t.phone || '-'}</td>
           <td>${t.orderKe}</td>
-          <td><span class="badge" style="background:${statusColor}; color:#1e1b2e">${t.status}</span></td>
+          <td><span class="badge" style="background:${statusColor}; color:#ffffff">${t.status}</span></td>
           <td class="text-xs">${t.jenisKunjungan}</td>
           <td>${t.pic}</td>
-          <td class="font-bold text-[#fbc2eb]">${t.targetKunjungan || '-'}</td>
+          <td class="font-bold text-[#3ac977]">${t.targetKunjungan || '-'}</td>
           <td>${t.lastVisit || '-'}</td>
           <td class="text-xs">${t.kodeKontak}</td>
           <td>${actBtns}</td>
@@ -672,15 +675,15 @@
             <div><label class="text-xs">JOB TITLE</label><input name="jobTitle" class="input-field" value="${t?.jobTitle||''}"></div>
             <div><label class="text-xs">PHONE</label><input name="phone" class="input-field" value="${t?.phone||''}"></div>
             <div><label class="text-xs">LOCATION</label><input name="location" class="input-field" value="${t?.location||''}"></div>
-            <div><label class="text-xs text-[#a18cd1] font-bold">ORDER KE</label>
+            <div><label class="text-xs text-[#58bad7] font-bold">ORDER KE</label>
                  ${isManager ? `<select name="orderKe" class="input-field border-[var(--accent)]" required><option value="">Pilih Order Ke...</option>${optionsHtml(db.setup.ORDER_KE, t?.orderKe)}</select>` : `<input name="orderKe" class="input-field" value="${t?.orderKe||''}" readonly>`}
             </div>
-            <div><label class="text-xs text-[#a18cd1] font-bold">STATUS TOKO</label><select name="status" class="input-field" required><option value="">Pilih Status...</option>${optionsHtml(db.setup.STATUS_TOKO, t?.status)}</select></div>
+            <div><label class="text-xs text-[#58bad7] font-bold">STATUS TOKO</label><select name="status" class="input-field" required><option value="">Pilih Status...</option>${optionsHtml(db.setup.STATUS_TOKO, t?.status)}</select></div>
             <div><label class="text-xs text-[var(--text-muted)]">JENIS KUNJUNGAN</label><select name="jenisKunjungan" class="input-field">${optionsHtml(db.setup.JENIS_KUNJUNGAN, t?.jenisKunjungan)}</select></div>
             <div><label class="text-xs text-[var(--text-muted)]">PIC</label>
                  ${picSelectHtml}
             </div>
-            <div><label class="text-xs font-bold text-[#fbc2eb]">TARGET KUNJUNGAN</label>
+            <div><label class="text-xs font-bold text-[#3ac977]">TARGET KUNJUNGAN</label>
               <select name="targetKunjungan" class="input-field">${optionsHtml(db.setup.TARGET_KUNJUNGAN_OPTIONS || ['1 x Sebulan','2 x Sebulan'], t?.targetKunjungan)}</select>
             </div>
             <div><label class="text-xs">MAPS LINK</label><input name="mapsLink" class="input-field" value="${t?.mapsLink||''}" placeholder="https://maps.app.goo.gl/..."></div>
@@ -711,8 +714,8 @@
       });
 
       let rows = filteredPlans.map(p => {
-        let badgeColor = (p.status==='Overdue' ? 'var(--danger)' : (p.status==='Cancelled' ? '#94a3b8' : '#f59e0b'));
-        let txtColor = (p.status==='Scheduled') ? '#1e1b2e' : '#fff';
+        let badgeColor = (p.status==='Overdue' ? 'var(--danger)' : (p.status==='Cancelled' ? '#9a9a9a' : '#ff9f00'));
+        let txtColor = (p.status==='Scheduled') ? '#ffffff' : '#fff';
         
         let actionBtn = isManager ? `<button onclick="delPlan('${p.id}')" class="text-xs text-[var(--text-muted)] hover:text-white font-bold ml-2">Del</button>` : '';
         if(p.status === 'Overdue') { 
@@ -724,13 +727,13 @@
 
         return `<tr>
           <td class="text-xs text-[var(--text-muted)]">${p.kontakToko}</td>
-          <td class="font-bold text-[#fbc2eb]">${p.namaToko}</td>
+          <td class="font-bold text-[#3ac977]">${p.namaToko}</td>
           <td><span class="badge border border-gray-500 text-gray-300 bg-transparent">${statTokoAsli}</span></td>
           <td>${p.tujuanKunjungan}</td>
           <td>${p.pic}</td>
           <td>${p.planDate}</td>
           <td>${p.actualDate||'-'}</td>
-          <td><span class="badge" style="background:${p.priority==='High'?'var(--danger)':p.priority==='Medium'?'#f59e0b':'#94a3b8'}; color:#1e1b2e">${p.priority}</span></td>
+          <td><span class="badge" style="background:${p.priority==='High'?'var(--danger)':p.priority==='Medium'?'#ff9f00':'#9a9a9a'}; color:#ffffff">${p.priority}</span></td>
           <td><span class="badge" style="background:${badgeColor}; color:${txtColor}">${p.status}</span></td>
           <td class="text-xs max-w-xs truncate" title="${p.keterangan}">${p.keterangan}</td>
           <td class="font-bold">${p.daysUntilDue}</td>
@@ -814,14 +817,14 @@
             `<input name="pic" class="input-field text-gray-400" value="${myPIC}" readonly>`;
 
       openModal(`
-        <h2 class="text-xl font-bold mb-4 text-[#a18cd1]">${preToko ? '⚠️ Recreate ' + vpLabel : 'Form Rencana Kunjungan'}</h2>
+        <h2 class="text-xl font-bold mb-4 text-[#58bad7]">${preToko ? '⚠️ Recreate ' + vpLabel : 'Form Rencana Kunjungan'}</h2>
         <form onsubmit="savePlan(event)">
           <input type="hidden" name="oldPlanId" value="${oldPlanId}">
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div class="col-span-2">
               <label class="text-xs text-[var(--text-muted)]">PILIH TOKO * (Ketik untuk mencari master)</label>
               <input type="text" class="input-field border-[var(--accent)] mb-1" placeholder="🔍 Cari Nama Toko / Kontak ID..." oninput="filterTokoSelect(this.value)">
-              <select required id="selectTokoPlan" name="kontakToko" class="input-field border-[#a18cd1]" onchange="document.getElementById('vpNama').value = this.options[this.selectedIndex].dataset.nama || ''">
+              <select required id="selectTokoPlan" name="kontakToko" class="input-field border-[#58bad7]" onchange="document.getElementById('vpNama').value = this.options[this.selectedIndex].dataset.nama || ''">
                 <option value="">Pilih Toko Master...</option>${tokoOptions}
               </select>
               <input type="hidden" name="namaToko" id="vpNama" value="${preNama}">
@@ -897,10 +900,10 @@
         <td class="text-xs">${a.kontakToko}</td>
         <td class="font-bold text-[var(--accent)]">${a.namaToko}</td>
         <td>${a.tanggalKunjungan}</td>
-        <td class="font-bold text-[#fbc2eb]">${picAkt}</td>
+        <td class="font-bold text-[#3ac977]">${picAkt}</td>
         <td class="text-xs">${a.orderKe || '-'}</td>
         <td class="text-xs">${a.jenisKunjungan || '-'}</td>
-        <td><span class="badge" style="background:var(--purple-grad); color:#1e1b2e">${a.aktifitas}</span></td>
+        <td><span class="badge" style="background:var(--purple-grad); color:#ffffff">${a.aktifitas}</span></td>
         <td class="text-xs">${a.kategoriSampling || '-'}</td>
         <td class="text-xs">${a.sampleDescription || '-'}</td>
         <td class="text-xs">${a.size || '-'}</td>
@@ -1016,8 +1019,8 @@
                 <textarea name="penjelasanKeluhan" class="input-field" placeholder="Tuliskan keluhan lengkap dari customer (jika ada)..." rows="2"></textarea>
             </div>
             <div class="col-span-2">
-                <label class="text-xs font-bold text-[#10b981]">NEXT ACTION</label>
-                <input name="nextAction" class="input-field border-[#10b981]" placeholder="Tindakan selanjutnya (follow up, pengiriman ulang, dll)...">
+                <label class="text-xs font-bold text-[#3ac977]">NEXT ACTION</label>
+                <input name="nextAction" class="input-field border-[#3ac977]" placeholder="Tindakan selanjutnya (follow up, pengiriman ulang, dll)...">
             </div>
             <div><label class="text-xs text-[var(--text-muted)] mt-2">STATUS AKTIFITAS</label><select name="status" class="input-field">${optionsHtml(db.setup.STATUS_AKTIFITAS)}</select></div>
           </div>
@@ -1087,8 +1090,8 @@
         <td>${i.date}</td>
         <td class="text-xs">${i.kontakToko}</td>
         <td class="font-bold">${i.namaToko}</td>
-        <td class="text-[#fbc2eb] font-bold">${i.pic || '-'}</td>
-        <td class="text-[#ff9a9e] font-bold">${i.kompetitor || '-'}</td>
+        <td class="text-[#3ac977] font-bold">${i.pic || '-'}</td>
+        <td class="text-[#0d99ff] font-bold">${i.kompetitor || '-'}</td>
         <td>${i.aktivitasKompetitor}</td>
         <td class="text-xs whitespace-normal max-w-xs break-words">${i.keteranganDetail}</td>
         <td>${isManager ? `<button onclick="delIntel('${i.id}')" class="text-xs text-[var(--danger)] font-bold">Del</button>` : ''}</td>
@@ -1119,7 +1122,7 @@
             `<input name="pic" class="input-field text-gray-400" value="${myPIC}" readonly>`;
 
       openModal(`
-        <h2 class="text-xl font-bold mb-4 text-[#a18cd1]">Form Intelejen Kompetitor</h2>
+        <h2 class="text-xl font-bold mb-4 text-[#58bad7]">Form Intelejen Kompetitor</h2>
         <form onsubmit="saveIntel(event)">
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div><label class="text-xs">DATE *</label><input type="date" required name="date" class="input-field" value="${todayStr}"></div>

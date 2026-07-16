@@ -5,20 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Retail Support CRM</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-        --bg-dark: #1e1b2e;
-        --bg-panel: #2a2438;
-        --text-main: #f8fafc;
-        --border: #443c5a;
-        --accent: #ff9a9e;
-        --purple-grad: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+        --bg-dark: #1e1e1e;
+        --bg-panel: #242424;
+        --text-main: #ffffff;
+        --border: #444444;
+        --accent: #0d99ff;
+        --purple-grad: linear-gradient(135deg, #0d99ff 0%, #58bad7 100%);
     }
-    body { background-color: var(--bg-dark); color: var(--text-main); font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-    .card { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 32px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); width: 100%; max-width: 380px; }
-    .input-field { width: 100%; background-color: var(--bg-dark); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 6px; margin-top: 8px; margin-bottom: 16px; }
+    body { background-color: var(--bg-dark); color: var(--text-main); font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .card { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 1rem; padding: 32px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); width: 100%; max-width: 380px; }
+    .input-field { width: 100%; background-color: var(--bg-dark); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 0.5rem; margin-top: 8px; margin-bottom: 16px; }
     .input-field:focus { outline: none; border-color: var(--accent); }
-    .btn-primary { width: 100%; padding: 12px; border-radius: 6px; background: var(--purple-grad); color: #1e1b2e; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; font-size: 14px;}
+    .btn-primary { width: 100%; padding: 12px; border-radius: 0.5rem; background: var(--purple-grad); color: #ffffff; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; font-size: 14px; box-shadow: 0 4px 12px rgba(13, 153, 255, 0.3); }
     .btn-primary:hover { opacity: 0.9; transform: translateY(-2px); }
   </style>
 </head>
@@ -27,14 +29,14 @@
   <div class="card">
     <div class="text-center mb-8">
         <h1 class="text-3xl font-bold tracking-wider text-[var(--accent)] mb-1">RETAIL SUPPORT</h1>
-        <p class="text-xs text-[#a18cd1]">CRM System - Manager & Sales Edition</p>
+        <p class="text-xs text-[#58bad7]">CRM System - Manager & Sales Edition</p>
     </div>
     
     <form id="loginForm">
-      <label class="text-xs font-bold text-[#a18cd1] tracking-wider">USER ID</label>
+      <label class="text-xs font-bold text-[#58bad7] tracking-wider">USER ID</label>
       <input type="text" id="userId" class="input-field" required placeholder="Masukkan ID Account..." autocomplete="off">
       
-      <label class="text-xs font-bold text-[#a18cd1] tracking-wider">PASSWORD</label>
+      <label class="text-xs font-bold text-[#58bad7] tracking-wider">PASSWORD</label>
       <input type="password" id="userPass" class="input-field" required placeholder="Masukkan Password...">
       
       <div id="errorMsg" class="bg-red-900/40 border border-red-500 text-red-300 text-xs p-3 rounded mb-4 hidden text-center">
