@@ -109,6 +109,22 @@
   <div id="cloudStatusBar" style="display:none; position:fixed; bottom:16px; right:16px; z-index:100; max-width:360px; padding:12px 16px; border-radius:8px; font-size:13px; box-shadow:0 4px 12px rgba(0,0,0,0.4);"></div>
 
   <script>
+    // ---- Gaya visual global Chart.js, disamakan dengan tema W3CRM ----
+    // (murni tampilan; tidak menyentuh logic/data chart manapun)
+    if (typeof Chart !== 'undefined') {
+      Chart.defaults.font.family = "'Poppins', ui-sans-serif, system-ui, sans-serif";
+      Chart.defaults.color = '#9a9a9a';
+      Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+      Chart.defaults.plugins.tooltip.backgroundColor = '#2f2f2f';
+      Chart.defaults.plugins.tooltip.titleColor = '#ffffff';
+      Chart.defaults.plugins.tooltip.bodyColor = '#e5e5e5';
+      Chart.defaults.plugins.tooltip.borderColor = '#444444';
+      Chart.defaults.plugins.tooltip.borderWidth = 1;
+      Chart.defaults.plugins.tooltip.padding = 10;
+      Chart.defaults.plugins.tooltip.cornerRadius = 8;
+      Chart.defaults.plugins.tooltip.displayColors = true;
+    }
+
     const loggedInRole = sessionStorage.getItem('crm_logged_in_role');
     
     if (!loggedInRole) {
@@ -535,13 +551,14 @@
       ['chartKunjungan', 'chartLampiran', 'chartIssue', 'chartSampling', 'chartKompetitor'].forEach(id => { if(window.myCharts[id]) window.myCharts[id].destroy(); });
 
       setTimeout(() => {
-        let optG = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: {color: '#ffffff', font:{size:10}} } } };
-        
-        if(document.getElementById('chartKunjungan')) window.myCharts['chartKunjungan'] = new Chart(document.getElementById('chartKunjungan'), { type: 'doughnut', data: { labels: ['Visited', 'Contacted', 'Scheduled', 'Overdue', 'Cancelled'], datasets: [{ data: [c_visited, c_contacted, c_scheduled, c_overdue, c_cancelled], backgroundColor: ['#0d99ff', '#3ac977', '#58bad7', '#ff5e5e', '#9a9a9a'], borderWidth: 0 }] }, options: optG });
-        if(document.getElementById('chartLampiran')) window.myCharts['chartLampiran'] = new Chart(document.getElementById('chartLampiran'), { type: 'bar', data: { labels: picLampiranLabels, datasets: [ { label: 'Melampirkan', data: picLampiranLabels.map(p => lampiranByPIC[p]['Melampirkan']), backgroundColor: '#3ac977' }, { label: 'Tidak Melampirkan', data: picLampiranLabels.map(p => lampiranByPIC[p]['Tidak Melampirkan']), backgroundColor: '#ff5e5e' } ] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, ticks: {color: '#9a9a9a'} }, y: { stacked: true, beginAtZero: true, ticks: {color: '#9a9a9a'} } }, plugins: { legend: { position: 'bottom', labels: {color: '#ffffff', font:{size:10}} } } } });
-        if(document.getElementById('chartIssue')) window.myCharts['chartIssue'] = new Chart(document.getElementById('chartIssue'), { type: 'pie', data: { labels: Object.keys(issueData).length ? Object.keys(issueData) : ['Aman'], datasets: [{ data: Object.keys(issueData).length ? Object.values(issueData) : [1], backgroundColor: ['#3ac977', '#58bad7', '#0d99ff', '#3aacff'], borderWidth: 0 }] }, options: optG });
-        if(document.getElementById('chartSampling')) window.myCharts['chartSampling'] = new Chart(document.getElementById('chartSampling'), { type: 'polarArea', data: { labels: Object.keys(samplingData).length ? Object.keys(samplingData) : ['N/A'], datasets: [{ data: Object.keys(samplingData).length ? Object.values(samplingData) : [1], backgroundColor: ['rgba(13, 153, 255, 0.7)', 'rgba(88, 186, 215, 0.7)', 'rgba(58, 201, 119, 0.7)'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { display: false } } } });
-        if(document.getElementById('chartKompetitor')) window.myCharts['chartKompetitor'] = new Chart(document.getElementById('chartKompetitor'), { type: 'bar', data: { labels: Object.keys(compData).length ? Object.keys(compData) : ['Belum Ada'], datasets: [{ label: 'Laporan', data: Object.keys(compData).length ? Object.values(compData) : [0], backgroundColor: '#58bad7' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: {color: '#9a9a9a'} }, x: { ticks: {color: '#9a9a9a'} } }, plugins: { legend: { display: false } } } });
+        let optG = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#a3a3a3', font: { size: 10, family: 'Poppins' }, usePointStyle: true, boxWidth: 8, padding: 14 } } } };
+        let optBar = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#9a9a9a', font: { family: 'Poppins', size: 10 } } }, y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#9a9a9a', font: { family: 'Poppins', size: 10 } } } } };
+
+        if(document.getElementById('chartKunjungan')) window.myCharts['chartKunjungan'] = new Chart(document.getElementById('chartKunjungan'), { type: 'doughnut', data: { labels: ['Visited', 'Contacted', 'Scheduled', 'Overdue', 'Cancelled'], datasets: [{ data: [c_visited, c_contacted, c_scheduled, c_overdue, c_cancelled], backgroundColor: ['#0d99ff', '#3ac977', '#58bad7', '#ff5e5e', '#9a9a9a'], borderWidth: 3, borderColor: '#242424', hoverOffset: 6 }] }, options: { ...optG, cutout: '70%' } });
+        if(document.getElementById('chartLampiran')) window.myCharts['chartLampiran'] = new Chart(document.getElementById('chartLampiran'), { type: 'bar', data: { labels: picLampiranLabels, datasets: [ { label: 'Melampirkan', data: picLampiranLabels.map(p => lampiranByPIC[p]['Melampirkan']), backgroundColor: '#3ac977', borderRadius: 6, maxBarThickness: 28 }, { label: 'Tidak Melampirkan', data: picLampiranLabels.map(p => lampiranByPIC[p]['Tidak Melampirkan']), backgroundColor: '#ff5e5e', borderRadius: 6, maxBarThickness: 28 } ] }, options: { ...optBar, scales: { x: { ...optBar.scales.x, stacked: true }, y: { ...optBar.scales.y, stacked: true } }, plugins: { legend: { position: 'bottom', labels: { color: '#a3a3a3', font: { size: 10, family: 'Poppins' }, usePointStyle: true, boxWidth: 8 } } } } });
+        if(document.getElementById('chartIssue')) window.myCharts['chartIssue'] = new Chart(document.getElementById('chartIssue'), { type: 'pie', data: { labels: Object.keys(issueData).length ? Object.keys(issueData) : ['Aman'], datasets: [{ data: Object.keys(issueData).length ? Object.values(issueData) : [1], backgroundColor: ['#3ac977', '#58bad7', '#0d99ff', '#3aacff'], borderWidth: 3, borderColor: '#242424', hoverOffset: 6 }] }, options: optG });
+        if(document.getElementById('chartSampling')) window.myCharts['chartSampling'] = new Chart(document.getElementById('chartSampling'), { type: 'polarArea', data: { labels: Object.keys(samplingData).length ? Object.keys(samplingData) : ['N/A'], datasets: [{ data: Object.keys(samplingData).length ? Object.values(samplingData) : [1], backgroundColor: ['rgba(13, 153, 255, 0.75)', 'rgba(88, 186, 215, 0.75)', 'rgba(58, 201, 119, 0.75)'], borderWidth: 2, borderColor: '#242424' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { display: false } } } });
+        if(document.getElementById('chartKompetitor')) window.myCharts['chartKompetitor'] = new Chart(document.getElementById('chartKompetitor'), { type: 'bar', data: { labels: Object.keys(compData).length ? Object.keys(compData) : ['Belum Ada'], datasets: [{ label: 'Laporan', data: Object.keys(compData).length ? Object.values(compData) : [0], backgroundColor: '#58bad7', borderRadius: 6, maxBarThickness: 32 }] }, options: optBar });
       }, 50);
     }
 
