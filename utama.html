@@ -541,7 +541,7 @@
               </div>
             </div>
 
-            <div class="card flex flex-col border-l-4 border-amber-500 shadow-md">
+            <div class="card flex flex-col border-l-4 border-amber-500">
               <h3 class="font-bold text-sm mb-4 text-amber-600">UPCOMING VISIT (SCHEDULED)</h3>
               <div class="overflow-x-auto flex-1">
               <table>
@@ -622,8 +622,7 @@
         let rMap = getSalesTargetMap('REMOTE');
         let picList = db.setup.PIC || [];
         html += `<div class="card mb-6 border-t-4 border-[#3ac977] shadow-md">
-          <h3 class="font-bold text-[#3ac977] text-lg mb-1">🎯 Target Bulanan Sales</h3>
-          <p class="text-xs text-[var(--text-muted)] mb-4">Diedit oleh Sales Manager. Otomatis dipakai di kartu "Target Kunjungan per Bulan" &amp; "Target Remote/WA" di Dashboard, dan tersimpan ke Google Sheet (sheet Setup).</p>
+          <h3 class="font-bold text-[#3ac977] text-lg mb-1">🎯 Target Bulanan</h3>
           <form onsubmit="saveTargetForm(event)">
             <table class="mb-4"><thead><tr><th>SALES (PIC)</th><th>TARGET VISITED / BULAN</th><th>TARGET REMOTE/WA / BULAN</th></tr></thead>
             <tbody>
