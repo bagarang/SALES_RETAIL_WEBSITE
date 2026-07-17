@@ -21,45 +21,46 @@
 
   <style>
     :root { 
-        --bg-dark: #1e1e1e; 
-        --bg-panel: #242424; 
-        --text-main: #ffffff; 
-        --text-muted: #a3a3a3; 
-        --border: #444444; 
+        --bg-dark: #f5f5f5; 
+        --bg-panel: #ffffff; 
+        --text-main: #2c2c2c; 
+        --text-muted: #888888; 
+        --border: #e9ecef; 
         --accent: #0d99ff; 
-        --accent-hover: #3aacff; 
-        --accent-glow: rgba(13, 153, 255, 0.15);
+        --accent-hover: #0b85e0; 
+        --accent-glow: rgba(13, 153, 255, 0.08);
         --danger: #ff5e5e; 
         --purple-grad: linear-gradient(135deg, #0d99ff 0%, #58bad7 100%);
     }
-    body { background-color: var(--bg-dark); color: var(--text-main); font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif; overflow-x: hidden; }
+    body { background-color: var(--bg-dark); color: var(--text-muted); font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif; overflow-x: hidden; }
+    h1, h2, h3, h4, h5, h6 { color: var(--text-main); }
     
     ::-webkit-scrollbar { width: 10px; height: 10px; }
     ::-webkit-scrollbar-track { background: var(--bg-dark); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; border: 2px solid var(--bg-dark); }
+    ::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 4px; border: 2px solid var(--bg-dark); }
     ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
     .sidebar { background-color: var(--bg-panel); border-right: 1px solid var(--border); }
-    .brand-mark { width: 34px; height: 34px; border-radius: 10px; background: var(--purple-grad); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(13,153,255,.3); flex-shrink: 0; }
+    .brand-mark { width: 34px; height: 34px; border-radius: 10px; background: var(--purple-grad); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(13,153,255,.25); flex-shrink: 0; }
     .nav-btn { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 10px 16px; margin: 2px 12px; width: calc(100% - 24px); border-radius: 0.6rem; color: var(--text-muted); cursor: pointer; transition: 0.15s; background: none; border: none; font-size: 13.5px; }
     .nav-icon { display: flex; align-items: center; justify-content: center; opacity: .85; flex-shrink: 0; }
-    .nav-btn:hover { background-color: rgba(255,255,255,0.06); color: #fff; }
-    .nav-btn.active { background: var(--purple-grad); color: #fff; font-weight: 600; box-shadow: 0 4px 14px rgba(13,153,255,.3); }
+    .nav-btn:hover { background-color: #f2f9ff; color: var(--accent); }
+    .nav-btn.active { background: #e9f6ff; color: var(--accent); font-weight: 600; }
     .nav-btn.active .nav-icon { opacity: 1; }
 
-    .topbar { height: 64px; flex-shrink: 0; background-color: var(--bg-panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; }
-    .topbar-title { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: .01em; }
+    .topbar { height: 64px; flex-shrink: 0; background-color: #2c2c2c; border-bottom: 1px solid #3a3a3a; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; }
+    .topbar-title { font-size: 17px; font-weight: 700; color: #ffffff; letter-spacing: .01em; }
     .topbar-right { display: flex; align-items: center; gap: 16px; }
-    .topbar-user { display: flex; align-items: center; gap: 10px; padding-right: 16px; border-right: 1px solid var(--border); }
-    .topbar-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--purple-grad); display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 3px 10px rgba(13,153,255,.3); }
+    .topbar-user { display: flex; align-items: center; gap: 10px; padding-right: 16px; border-right: 1px solid #444444; }
+    .topbar-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--purple-grad); display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 3px 10px rgba(13,153,255,.25); }
 
-    .card { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 1rem; padding: 20px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15); }
+    .card { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 1rem; padding: 20px; box-shadow: 0rem 0.3125rem 0.3125rem rgba(82, 63, 105, 0.04); }
     
     .table-wrapper { overflow: auto; max-height: calc(100vh - 160px); }
     
-    .input-field { width: 100%; background-color: var(--bg-dark); border: 1px solid var(--border); color: white; padding: 8px 12px; border-radius: 0.5rem; margin-top: 4px; }
+    .input-field { width: 100%; background-color: #ffffff; border: 1px solid var(--border); color: var(--text-main); padding: 8px 12px; border-radius: 0.5rem; margin-top: 4px; }
     .input-field:focus { outline: none; border-color: var(--accent); }
-    .input-field:disabled, .input-field[readonly] { opacity: 0.6; cursor: not-allowed; }
+    .input-field:disabled, .input-field[readonly] { opacity: 0.7; cursor: not-allowed; background-color: var(--bg-dark); }
     
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
     
@@ -75,18 +76,19 @@
         box-shadow: 0 1px 0 var(--border);
     }
     
-    td { padding: 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-    tr:hover td { background-color: rgba(255,255,255,0.03); }
+    td { padding: 12px; border-bottom: 1px solid var(--border); white-space: nowrap; color: var(--text-main); }
+    tr:hover td { background-color: var(--bg-dark); }
     
     .btn { padding: 8px 16px; border-radius: 0.5rem; font-weight: 500; cursor: pointer; transition: 0.2s; border: none;}
     .btn-primary { background: var(--purple-grad); color: #ffffff; font-weight: 700; box-shadow: 0 4px 12px rgba(13, 153, 255, 0.3); }
     .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
-    .btn-secondary { background-color: var(--border); color: white; }
-    .btn-secondary:hover { background-color: #5a5a5a; }
+    .btn-secondary { background-color: #eef0f2; color: var(--text-main); }
+    .btn-secondary:hover { background-color: #e2e4e7; }
     .btn-warning { background-color: #ff9f00; color: #ffffff; font-weight: bold; }
     .badge { padding: 4px 10px; border-radius: 50rem; font-size: 12px; font-weight: 600; }
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 50; align-items: center; justify-content: center; }
-    .modal-content { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 1rem; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; padding: 24px; }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(20,20,20,0.55); z-index: 50; align-items: center; justify-content: center; }
+    .modal-content { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 1rem; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.25); }
+    .icon-badge { width: 44px; height: 44px; border-radius: 0.7rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   </style>
 </head>
 <body class="flex h-screen">
@@ -96,7 +98,7 @@
       <div class="brand-mark">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 21V9L12 3L21 9V21H14V14H10V21H3Z" fill="white"/></svg>
       </div>
-      <h1 class="text-lg font-bold tracking-wider text-white">RETAIL SUPPORT</h1>
+      <h1 class="text-lg font-bold tracking-wider text-[var(--text-main)]">RETAIL SUPPORT</h1>
     </div>
 
     <nav class="flex-1 py-4">
@@ -138,11 +140,11 @@
         <div class="topbar-user">
           <div class="topbar-avatar">👤</div>
           <div>
-            <div class="text-[9px] text-[#6b6b6b] uppercase tracking-wider leading-none mb-1">Logged in as</div>
+            <div class="text-[9px] text-[#9a9a9a] uppercase tracking-wider leading-none mb-1">Logged in as</div>
             <div id="userProfileDisplay" class="text-white font-bold text-xs leading-none">Memuat...</div>
           </div>
         </div>
-        <button onclick="logoutSystem()" class="btn btn-secondary text-xs py-2 px-3 bg-red-900/30 hover:bg-red-900/60 text-red-300 border border-red-900">🚪 Log Out</button>
+        <button onclick="logoutSystem()" class="btn btn-secondary text-xs py-2 px-3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200">🚪 Log Out</button>
       </div>
     </header>
 
@@ -496,7 +498,7 @@
             </div>
         </div>
         
-        <div class="card bg-[#2f2f2f] border-[var(--border)] mb-6 shadow-md">
+        <div class="card mb-6 shadow-md">
             <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                <div><label class="text-xs text-[var(--accent)] font-bold mb-1 block">TANGGAL MULAI</label><input type="date" id="dashStart" value="${fStart}" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"></div>
                <div><label class="text-xs text-[var(--accent)] font-bold mb-1 block">TANGGAL AKHIR</label><input type="date" id="dashEnd" value="${fEnd}" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"></div>
@@ -507,27 +509,24 @@
         </div>
 
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-            <div class="card border-t-4 border-[#58bad7] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TOTAL TOKO AKTIF</p><h2 class="text-3xl font-bold mt-1 text-white">${kpi_tokoAktif}</h2></div>
-            <div class="card border-t-4 border-[#3ac977] shadow-md">
-              <p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TARGET KUNJUNGAN PER BULAN</p>
-              <h2 class="text-3xl font-bold mt-1 text-[#3ac977]">${kpi_targetVisited}</h2>
-            </div>
-            <div class="card border-t-4 border-[var(--accent)] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">REALISASI VISITED</p><h2 class="text-3xl font-bold mt-1 text-[var(--accent)]">${kpi_realisasiVisited}</h2></div>
-            <div class="card border-t-4 border-[var(--accent)] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">% PENCAPAIAN VISITED</p><h2 class="text-3xl font-bold mt-1 ${kpi_persentaseVisited >= 100 ? 'text-green-400' : 'text-yellow-400'}">${kpi_persentaseVisited}%</h2></div>
+            <div class="card shadow-md"><div class="flex items-center gap-3"><div class="icon-badge" style="background:#e1f3f8"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2.5 8.33L3.33 2.5H16.67L17.5 8.33" stroke="#58bad7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.17 8.33V17.5H15.83V8.33" stroke="#58bad7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.33 17.5V12.5H11.67V17.5" stroke="#58bad7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TOTAL TOKO AKTIF</p><h2 class="text-2xl font-bold mt-0.5 text-[var(--text-main)]">${kpi_tokoAktif}</h2></div></div></div>
+            <div class="card shadow-md"><div class="flex items-center gap-3"><div class="icon-badge" style="background:#e3f9ec"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="#3ac977" stroke-width="1.6"/><circle cx="10" cy="10" r="3.5" stroke="#3ac977" stroke-width="1.6"/><circle cx="10" cy="10" r="0.9" fill="#3ac977"/></svg></div><div><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TARGET KUNJUNGAN/BULAN</p><h2 class="text-2xl font-bold mt-0.5 text-[#3ac977]">${kpi_targetVisited}</h2></div></div></div>
+            <div class="card shadow-md"><div class="flex items-center gap-3"><div class="icon-badge" style="background:#e2f3ff"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10.5L8 14.5L16 5.5" stroke="#0d99ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">REALISASI VISITED</p><h2 class="text-2xl font-bold mt-0.5 text-[var(--accent)]">${kpi_realisasiVisited}</h2></div></div></div>
+            <div class="card shadow-md"><div class="flex items-center gap-3"><div class="icon-badge" style="background:${kpi_persentaseVisited >= 100 ? '#e3f9ec' : '#fff3d6'}"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 13L7.5 8.5L11 12L17 6" stroke="${kpi_persentaseVisited >= 100 ? '#3ac977' : '#ff9f00'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.5 6H17V10.5" stroke="${kpi_persentaseVisited >= 100 ? '#3ac977' : '#ff9f00'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">% PENCAPAIAN VISITED</p><h2 class="text-2xl font-bold mt-0.5 ${kpi_persentaseVisited >= 100 ? 'text-green-600' : 'text-amber-600'}">${kpi_persentaseVisited}%</h2></div></div></div>
         </div>
         <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-            <div class="card border-t-4 border-[#0d99ff] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TARGET REMOTE/WA PER BULAN</p><h2 class="text-3xl font-bold mt-1 text-[#0d99ff]">${kpi_targetRemote}</h2></div>
-            <div class="card border-t-4 border-[#0d99ff] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">REALISASI REMOTE/WA (CONTACTED)</p><h2 class="text-3xl font-bold mt-1 text-[#0d99ff]">${kpi_realisasiRemote}</h2></div>
-            <div class="card border-t-4 border-[#0d99ff] shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">% PENCAPAIAN REMOTE/WA</p><h2 class="text-3xl font-bold mt-1 ${kpi_persentaseRemote >= 100 ? 'text-green-400' : 'text-yellow-400'}">${kpi_persentaseRemote}%</h2></div>
-            <div class="card border-t-4 border-slate-500 shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TOTAL REALISASI (VISITED+REMOTE)</p><h2 class="text-3xl font-bold mt-1 text-white">${kpi_realisasi}</h2><p class="text-[10px] text-[var(--text-muted)] mt-1">dari target ${kpi_targetTotal}</p></div>
-            <div class="card border-t-4 border-slate-500 shadow-md"><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">% PENCAPAIAN TOTAL</p><h2 class="text-3xl font-bold mt-1 ${kpi_persentaseTotal >= 100 ? 'text-green-400' : 'text-yellow-400'}">${kpi_persentaseTotal}%</h2></div>
+            <div class="card shadow-md"><div class="flex items-center gap-3"><div class="icon-badge" style="background:#e2f3ff"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M17.5 10C17.5 14.14 14.14 17.5 10 17.5C5.86 17.5 2.5 14.14 2.5 10C2.5 5.86 5.86 2.5 10 2.5" stroke="#0d99ff" stroke-width="1.6" stroke-linecap="round"/><path d="M13.33 3.33L10 10L15.83 8.33" stroke="#0d99ff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TARGET REMOTE/WA</p><h2 class="text-2xl font-bold mt-0.5 text-[#0d99ff]">${kpi_targetRemote}</h2></div></div></div>
+            <div class="card shadow-md"><div class="flex items-center gap-3"><div class="icon-badge" style="background:#e2f3ff"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10.5L8 14.5L16 5.5" stroke="#0d99ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">REALISASI REMOTE/WA</p><h2 class="text-2xl font-bold mt-0.5 text-[#0d99ff]">${kpi_realisasiRemote}</h2></div></div></div>
+            <div class="card shadow-md"><div class="flex items-center gap-3"><div class="icon-badge" style="background:${kpi_persentaseRemote >= 100 ? '#e3f9ec' : '#fff3d6'}"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 13L7.5 8.5L11 12L17 6" stroke="${kpi_persentaseRemote >= 100 ? '#3ac977' : '#ff9f00'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.5 6H17V10.5" stroke="${kpi_persentaseRemote >= 100 ? '#3ac977' : '#ff9f00'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">% PENCAPAIAN REMOTE/WA</p><h2 class="text-2xl font-bold mt-0.5 ${kpi_persentaseRemote >= 100 ? 'text-green-600' : 'text-amber-600'}">${kpi_persentaseRemote}%</h2></div></div></div>
+            <div class="card shadow-md"><div class="flex items-center gap-3"><div class="icon-badge" style="background:#eef0f2"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="6" height="6" rx="1.2" stroke="#5D606F" stroke-width="1.6"/><rect x="11" y="3" width="6" height="6" rx="1.2" stroke="#5D606F" stroke-width="1.6"/><rect x="3" y="11" width="6" height="6" rx="1.2" stroke="#5D606F" stroke-width="1.6"/><rect x="11" y="11" width="6" height="6" rx="1.2" stroke="#5D606F" stroke-width="1.6"/></svg></div><div><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TOTAL REALISASI</p><h2 class="text-2xl font-bold mt-0.5 text-[var(--text-main)]">${kpi_realisasi}</h2><p class="text-[10px] text-[var(--text-muted)] mt-0.5">dari target ${kpi_targetTotal}</p></div></div></div>
+            <div class="card shadow-md"><div class="flex items-center gap-3"><div class="icon-badge" style="background:${kpi_persentaseTotal >= 100 ? '#e3f9ec' : '#fff3d6'}"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 13L7.5 8.5L11 12L17 6" stroke="${kpi_persentaseTotal >= 100 ? '#3ac977' : '#ff9f00'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.5 6H17V10.5" stroke="${kpi_persentaseTotal >= 100 ? '#3ac977' : '#ff9f00'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">% PENCAPAIAN TOTAL</p><h2 class="text-2xl font-bold mt-0.5 ${kpi_persentaseTotal >= 100 ? 'text-green-600' : 'text-amber-600'}">${kpi_persentaseTotal}%</h2></div></div></div>
         </div>
 
         <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[var(--accent)]">STATUS KUNJUNGAN</h3><div class="flex-1 relative w-full h-full"><canvas id="chartKunjungan"></canvas></div></div>
             <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[#58bad7]">KATEGORI KOMPLAIN</h3><div class="flex-1 relative w-full h-full"><canvas id="chartIssue"></canvas></div></div>
             <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[var(--accent)]">KATEGORI SAMPLING</h3><div class="flex-1 relative w-full h-full"><canvas id="chartSampling"></canvas></div></div>
-            <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-yellow-500">KEPATUHAN FOTO (PIC)</h3><div class="flex-1 relative w-full h-full"><canvas id="chartLampiran"></canvas></div></div>
+            <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-amber-600">KEPATUHAN FOTO (PIC)</h3><div class="flex-1 relative w-full h-full"><canvas id="chartLampiran"></canvas></div></div>
             <div class="card h-64 flex flex-col lg:col-span-2 shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[#58bad7]">LAPORAN KOMPETITOR</h3><div class="flex-1 relative w-full h-full"><canvas id="chartKompetitor"></canvas></div></div>
         </div>
 
@@ -537,13 +536,13 @@
               <div class="overflow-x-auto flex-1">
               <table>
                 <thead><tr><th>NAMA TOKO</th><th>TGL KUNJUNGAN</th><th>AKTIFITAS</th><th>STATUS</th></tr></thead>
-                <tbody>${fAktifitasCombined.length > 0 ? fAktifitasCombined.slice(-5).reverse().map(a => `<tr><td class="font-bold text-[var(--accent)]">${a.namaToko}</td><td>${a.tanggalKunjungan}</td><td><span class="badge" style="background:var(--purple-grad); color:#ffffff">${a.aktifitas}</span></td><td><span class="badge" style="background:var(--border); color:#fff">${a.status}</span></td></tr>`).join('') : `<tr><td colspan="4" class="text-center text-[var(--text-muted)] py-4">Tidak ada data.</td></tr>`}</tbody>
+                <tbody>${fAktifitasCombined.length > 0 ? fAktifitasCombined.slice(-5).reverse().map(a => `<tr><td class="font-bold text-[var(--accent)]">${a.namaToko}</td><td>${a.tanggalKunjungan}</td><td><span class="badge" style="background:var(--purple-grad); color:#ffffff">${a.aktifitas}</span></td><td><span class="badge" style="background:#5D606F; color:#fff">${a.status}</span></td></tr>`).join('') : `<tr><td colspan="4" class="text-center text-[var(--text-muted)] py-4">Tidak ada data.</td></tr>`}</tbody>
               </table>
               </div>
             </div>
 
-            <div class="card flex flex-col border-l-4 border-yellow-500 shadow-md">
-              <h3 class="font-bold text-sm mb-4 text-yellow-500">UPCOMING VISIT (SCHEDULED)</h3>
+            <div class="card flex flex-col border-l-4 border-amber-500 shadow-md">
+              <h3 class="font-bold text-sm mb-4 text-amber-600">UPCOMING VISIT (SCHEDULED)</h3>
               <div class="overflow-x-auto flex-1">
               <table>
                 <thead><tr><th>NAMA TOKO</th><th>TUJUAN KUNJUNGAN</th><th>PLAN DATE</th><th>PRIORITY</th></tr></thead>
@@ -589,7 +588,7 @@
                     <td>${a.tanggalKunjungan}</td>
                     <td class="text-[var(--danger)] font-bold">${a.keluhanFeedback || '-'}</td>
                     <td class="text-xs whitespace-normal max-w-xs">${a.keterangan || '-'}</td>
-                    <td class="text-xs whitespace-normal max-w-xs text-yellow-200">${isManager ? `<input type="text" class="input-field text-xs mt-0" style="min-width:180px" value="${htmlEscapeAttr(a.nextAction)}" placeholder="Isi next action..." onchange="updateNextAction('${a.id}', this.value); this.style.borderColor='#3ac977'; setTimeout(()=>{this.style.borderColor='';}, 800);">` : (a.nextAction || '-')}</td>
+                    <td class="text-xs whitespace-normal max-w-xs text-amber-700">${isManager ? `<input type="text" class="input-field text-xs mt-0" style="min-width:180px" value="${htmlEscapeAttr(a.nextAction)}" placeholder="Isi next action..." onchange="updateNextAction('${a.id}', this.value); this.style.borderColor='#3ac977'; setTimeout(()=>{this.style.borderColor='';}, 800);">` : (a.nextAction || '-')}</td>
                   </tr>`).join('') : `<tr><td colspan="5" class="text-center text-[var(--text-muted)] py-4">Tidak ada keluhan dengan aksi tercatat.</td></tr>`}
                 </tbody>
             </table>
@@ -601,13 +600,13 @@
       ['chartKunjungan', 'chartLampiran', 'chartIssue', 'chartSampling', 'chartKompetitor'].forEach(id => { if(window.myCharts[id]) window.myCharts[id].destroy(); });
 
       setTimeout(() => {
-        let optG = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#a3a3a3', font: { size: 10, family: 'Poppins' }, usePointStyle: true, boxWidth: 8, padding: 14 } } } };
-        let optBar = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#9a9a9a', font: { family: 'Poppins', size: 10 } } }, y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#9a9a9a', font: { family: 'Poppins', size: 10 } } } } };
+        let optG = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#888888', font: { size: 10, family: 'Poppins' }, usePointStyle: true, boxWidth: 8, padding: 14 } } } };
+        let optBar = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { color: '#888888', font: { family: 'Poppins', size: 10 } } }, y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { color: '#888888', font: { family: 'Poppins', size: 10 } } } } };
 
-        if(document.getElementById('chartKunjungan')) window.myCharts['chartKunjungan'] = new Chart(document.getElementById('chartKunjungan'), { type: 'doughnut', data: { labels: ['Visited', 'Contacted', 'Scheduled', 'Overdue', 'Cancelled'], datasets: [{ data: [c_visited, c_contacted, c_scheduled, c_overdue, c_cancelled], backgroundColor: ['#0d99ff', '#3ac977', '#58bad7', '#ff5e5e', '#9a9a9a'], borderWidth: 3, borderColor: '#242424', hoverOffset: 6 }] }, options: { ...optG, cutout: '70%' } });
-        if(document.getElementById('chartLampiran')) window.myCharts['chartLampiran'] = new Chart(document.getElementById('chartLampiran'), { type: 'bar', data: { labels: picLampiranLabels, datasets: [ { label: 'Melampirkan', data: picLampiranLabels.map(p => lampiranByPIC[p]['Melampirkan']), backgroundColor: '#3ac977', borderRadius: 6, maxBarThickness: 28 }, { label: 'Tidak Melampirkan', data: picLampiranLabels.map(p => lampiranByPIC[p]['Tidak Melampirkan']), backgroundColor: '#ff5e5e', borderRadius: 6, maxBarThickness: 28 } ] }, options: { ...optBar, scales: { x: { ...optBar.scales.x, stacked: true }, y: { ...optBar.scales.y, stacked: true } }, plugins: { legend: { position: 'bottom', labels: { color: '#a3a3a3', font: { size: 10, family: 'Poppins' }, usePointStyle: true, boxWidth: 8 } } } } });
-        if(document.getElementById('chartIssue')) window.myCharts['chartIssue'] = new Chart(document.getElementById('chartIssue'), { type: 'pie', data: { labels: Object.keys(issueData).length ? Object.keys(issueData) : ['Aman'], datasets: [{ data: Object.keys(issueData).length ? Object.values(issueData) : [1], backgroundColor: ['#3ac977', '#58bad7', '#0d99ff', '#3aacff'], borderWidth: 3, borderColor: '#242424', hoverOffset: 6 }] }, options: optG });
-        if(document.getElementById('chartSampling')) window.myCharts['chartSampling'] = new Chart(document.getElementById('chartSampling'), { type: 'polarArea', data: { labels: Object.keys(samplingData).length ? Object.keys(samplingData) : ['N/A'], datasets: [{ data: Object.keys(samplingData).length ? Object.values(samplingData) : [1], backgroundColor: ['rgba(13, 153, 255, 0.75)', 'rgba(88, 186, 215, 0.75)', 'rgba(58, 201, 119, 0.75)'], borderWidth: 2, borderColor: '#242424' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { display: false } } } });
+        if(document.getElementById('chartKunjungan')) window.myCharts['chartKunjungan'] = new Chart(document.getElementById('chartKunjungan'), { type: 'doughnut', data: { labels: ['Visited', 'Contacted', 'Scheduled', 'Overdue', 'Cancelled'], datasets: [{ data: [c_visited, c_contacted, c_scheduled, c_overdue, c_cancelled], backgroundColor: ['#0d99ff', '#3ac977', '#58bad7', '#ff5e5e', '#9a9a9a'], borderWidth: 3, borderColor: '#ffffff', hoverOffset: 6 }] }, options: { ...optG, cutout: '70%' } });
+        if(document.getElementById('chartLampiran')) window.myCharts['chartLampiran'] = new Chart(document.getElementById('chartLampiran'), { type: 'bar', data: { labels: picLampiranLabels, datasets: [ { label: 'Melampirkan', data: picLampiranLabels.map(p => lampiranByPIC[p]['Melampirkan']), backgroundColor: '#3ac977', borderRadius: 6, maxBarThickness: 28 }, { label: 'Tidak Melampirkan', data: picLampiranLabels.map(p => lampiranByPIC[p]['Tidak Melampirkan']), backgroundColor: '#ff5e5e', borderRadius: 6, maxBarThickness: 28 } ] }, options: { ...optBar, scales: { x: { ...optBar.scales.x, stacked: true }, y: { ...optBar.scales.y, stacked: true } }, plugins: { legend: { position: 'bottom', labels: { color: '#888888', font: { size: 10, family: 'Poppins' }, usePointStyle: true, boxWidth: 8 } } } } });
+        if(document.getElementById('chartIssue')) window.myCharts['chartIssue'] = new Chart(document.getElementById('chartIssue'), { type: 'pie', data: { labels: Object.keys(issueData).length ? Object.keys(issueData) : ['Aman'], datasets: [{ data: Object.keys(issueData).length ? Object.values(issueData) : [1], backgroundColor: ['#3ac977', '#58bad7', '#0d99ff', '#3aacff'], borderWidth: 3, borderColor: '#ffffff', hoverOffset: 6 }] }, options: optG });
+        if(document.getElementById('chartSampling')) window.myCharts['chartSampling'] = new Chart(document.getElementById('chartSampling'), { type: 'polarArea', data: { labels: Object.keys(samplingData).length ? Object.keys(samplingData) : ['N/A'], datasets: [{ data: Object.keys(samplingData).length ? Object.values(samplingData) : [1], backgroundColor: ['rgba(13, 153, 255, 0.75)', 'rgba(88, 186, 215, 0.75)', 'rgba(58, 201, 119, 0.75)'], borderWidth: 2, borderColor: '#ffffff' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { display: false } } } });
         if(document.getElementById('chartKompetitor')) window.myCharts['chartKompetitor'] = new Chart(document.getElementById('chartKompetitor'), { type: 'bar', data: { labels: Object.keys(compData).length ? Object.keys(compData) : ['Belum Ada'], datasets: [{ label: 'Laporan', data: Object.keys(compData).length ? Object.values(compData) : [0], backgroundColor: '#58bad7', borderRadius: 6, maxBarThickness: 32 }] }, options: optBar });
       }, 50);
     }
@@ -646,7 +645,7 @@
         let displayKey = key.replace(/_/g, ' ');
         html += `<div class="card flex flex-col h-full"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-[var(--accent)] text-lg">${displayKey}</h3><button onclick="addSetup('${key}')" class="text-xs btn-primary px-3 py-1 rounded shadow">+ Add</button></div><ul class="text-sm flex-1 overflow-y-auto max-h-60 pr-2">`;
         if (!db.setup[key] || db.setup[key].length === 0) { html += `<li class="text-[var(--text-muted)] italic">Belum ada data</li>`; }
-        else { db.setup[key].forEach((item, index) => { html += `<li class="flex justify-between items-center border-b border-[var(--border)] py-2 group"><span class="truncate pr-2">${item}</span><button onclick="delSetup('${key}', ${index})" class="text-[var(--danger)] text-xs font-bold px-2 py-1 bg-red-900/20 rounded">Hapus</button></li>`; }); }
+        else { db.setup[key].forEach((item, index) => { html += `<li class="flex justify-between items-center border-b border-[var(--border)] py-2 group"><span class="truncate pr-2">${item}</span><button onclick="delSetup('${key}', ${index})" class="text-[var(--danger)] text-xs font-bold px-2 py-1 bg-red-50 rounded">Hapus</button></li>`; }); }
         html += `</ul></div>`;
       }
       c.innerHTML = html + `</div>`;
@@ -687,7 +686,7 @@
         let statusColor = (t.status === 'Inactive' || t.status === 'Non Aktif (Nomer Tidak dapat dihubungi)') ? 'var(--danger)' : 
                           (t.status === 'Active') ? '#3ac977' : 
                           (t.status === 'Prospect') ? '#ff9f00' : 'var(--accent)';
-        let actBtns = isManager ? `<button onclick="formToko('${t.contactId}')" class="text-xs text-[#58bad7] hover:text-white font-bold mr-2">Edit</button><button onclick="delToko('${t.contactId}')" class="text-xs text-[var(--danger)] hover:text-white font-bold">Del</button>` : `<span class="text-[10px] text-gray-500">Read Only</span>`;
+        let actBtns = isManager ? `<button onclick="formToko('${t.contactId}')" class="text-xs text-[#58bad7] hover:underline font-bold mr-2">Edit</button><button onclick="delToko('${t.contactId}')" class="text-xs text-[var(--danger)] hover:underline font-bold">Del</button>` : `<span class="text-[10px] text-gray-500">Read Only</span>`;
         return `<tr>
           <td class="text-xs text-[var(--text-muted)]">${t.contactId}</td>
           <td class="font-bold text-[var(--accent)]">${t.namaToko}</td>
@@ -730,7 +729,7 @@
       let t = editId ? db.toko.find(x => x.contactId === editId) : null;
       let picSelectHtml = isManager ? 
             `<select name="pic" class="input-field">${optionsHtml(db.setup.PIC, t?.pic)}</select>` : 
-            `<input name="pic" class="input-field text-gray-400" value="${myPIC}" readonly>`;
+            `<input name="pic" class="input-field text-gray-500" value="${myPIC}" readonly>`;
 
       openModal(`
         <h2 class="text-xl font-bold mb-4 text-[var(--accent)]">${t ? 'Edit Data Toko' : 'Form Tambah Daftar Toko'}</h2>
@@ -784,7 +783,7 @@
         let badgeColor = (p.status==='Overdue' ? 'var(--danger)' : (p.status==='Cancelled' ? '#9a9a9a' : '#ff9f00'));
         let txtColor = (p.status==='Scheduled') ? '#ffffff' : '#fff';
         
-        let actionBtn = isManager ? `<button onclick="delPlan('${p.id}')" class="text-xs text-[var(--text-muted)] hover:text-white font-bold ml-2">Del</button>` : '';
+        let actionBtn = isManager ? `<button onclick="delPlan('${p.id}')" class="text-xs text-[var(--text-muted)] hover:text-[var(--accent)] font-bold ml-2">Del</button>` : '';
         if(p.status === 'Overdue') { 
             actionBtn = `<button data-id="${p.id}" data-toko="${p.kontakToko}" data-nama="${p.namaToko}" data-pic="${p.pic}" data-ket="${p.keterangan || ''}" onclick="recreatePlan(this)" class="btn btn-warning text-[10px] px-2 py-1 mr-2">⚠️ Recreate</button>` + actionBtn; 
         }
@@ -795,7 +794,7 @@
         return `<tr>
           <td class="text-xs text-[var(--text-muted)]">${p.kontakToko}</td>
           <td class="font-bold text-[#3ac977]">${p.namaToko}</td>
-          <td><span class="badge border border-gray-500 text-gray-300 bg-transparent">${statTokoAsli}</span></td>
+          <td><span class="badge border border-gray-300 text-gray-600 bg-transparent">${statTokoAsli}</span></td>
           <td>${p.tujuanKunjungan}</td>
           <td>${p.pic}</td>
           <td>${p.planDate}</td>
@@ -881,7 +880,7 @@
       
       let picInputHtml = isManager ? 
             `<select name="pic" class="input-field">${optionsHtml(db.setup.PIC, prePic)}</select>` : 
-            `<input name="pic" class="input-field text-gray-400" value="${myPIC}" readonly>`;
+            `<input name="pic" class="input-field text-gray-500" value="${myPIC}" readonly>`;
 
       openModal(`
         <h2 class="text-xl font-bold mb-4 text-[#58bad7]">${preToko ? '⚠️ Recreate ' + vpLabel : 'Form Rencana Kunjungan'}</h2>
@@ -975,10 +974,10 @@
         <td class="text-xs">${a.sampleDescription || '-'}</td>
         <td class="text-xs">${a.size || '-'}</td>
         <td class="text-[var(--danger)] font-bold">${a.keluhanFeedback || '-'}</td>
-        <td><a href="${a.linkFoto}" target="_blank" class="text-blue-400 underline text-xs">${a.linkFoto ? 'Lihat Foto' : '[KOSONG]'}</a></td>
+        <td><a href="${a.linkFoto}" target="_blank" class="text-blue-600 underline text-xs">${a.linkFoto ? 'Lihat Foto' : '[KOSONG]'}</a></td>
         <td><span class="badge ${statusFoto === 'Melampirkan' ? 'bg-green-500' : (statusFoto === 'Tidak Wajib' ? 'bg-gray-500' : 'bg-red-500')} text-white">${statusFoto}</span></td>
         <td class="text-xs max-w-xs truncate" title="${a.keterangan}">${a.keterangan}</td>
-        <td><span class="badge" style="background:var(--border); color:#fff">${a.status}</span></td>
+        <td><span class="badge" style="background:#5D606F; color:#fff">${a.status}</span></td>
         <td>${isManager ? `<button onclick="delAktifitas('${a.id}')" class="text-xs text-[var(--danger)] font-bold">Del</button>` : ''}</td>
       </tr>`;
       }).join('');
@@ -1066,7 +1065,7 @@
             
             <div><label class="text-xs">TANGGAL KUNJUNGAN AKTUAL *</label><input type="date" required name="tanggalKunjungan" class="input-field" value="${todayStr}"></div>
             <div><label class="text-xs text-[var(--text-muted)]">PIC (Otomatis Sesuai Toko)</label>
-              <input name="pic" id="actPIC" class="input-field text-gray-400" value="" readonly>
+              <input name="pic" id="actPIC" class="input-field text-gray-500" value="" readonly>
             </div>
             <div><label class="text-xs text-[var(--text-muted)]">ORDER KE</label>
               <select name="orderKe" id="actOrderKe" class="input-field">${optionsHtml(db.setup.ORDER_KE)}</select>
@@ -1082,7 +1081,7 @@
             <div><label class="text-xs" id="actLinkFotoLabel">LINK FOTO KUNJUNGAN (Wajib / Poin -)</label><input name="linkFoto" id="actLinkFoto" class="input-field" placeholder="https://..."></div>
             <div class="col-span-2"><label class="text-xs">KETERANGAN LOG</label><input name="keterangan" class="input-field"></div>
             <div class="col-span-2 border-t border-[var(--border)] pt-2 mt-2">
-                <label class="text-xs font-bold text-yellow-500">PENJELASAN KELUHAN DETAIL</label>
+                <label class="text-xs font-bold text-amber-600">PENJELASAN KELUHAN DETAIL</label>
                 <textarea name="penjelasanKeluhan" class="input-field" placeholder="Tuliskan keluhan lengkap dari customer (jika ada)..." rows="2"></textarea>
             </div>
             <div class="col-span-2">
@@ -1186,7 +1185,7 @@
       let tokoOptions = filteredTokoForIntel.map(t => `<option value="${t.kodeKontak}" data-nama="${t.namaToko}">${t.kodeKontak} - ${t.namaToko}</option>`).join('');
       let picSelectHtml = isManager ?
             `<select required name="pic" class="input-field">${optionsHtml(db.setup.PIC)}</select>` :
-            `<input name="pic" class="input-field text-gray-400" value="${myPIC}" readonly>`;
+            `<input name="pic" class="input-field text-gray-500" value="${myPIC}" readonly>`;
 
       openModal(`
         <h2 class="text-xl font-bold mb-4 text-[#58bad7]">Form Intelejen Kompetitor</h2>

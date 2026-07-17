@@ -74,7 +74,7 @@ function showCloudStatus(message, isError) {
   if (!bar) return;
   bar.textContent = message;
   bar.style.display = 'block';
-  bar.style.background = isError ? '#ff5e5e' : '#242424';
+  bar.style.background = isError ? '#ff5e5e' : '#2c2c2c';
   bar.style.color = '#ffffff';
   bar.style.border = isError ? '1px solid #7f1d1d' : '1px solid #444444';
 
