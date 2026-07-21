@@ -137,6 +137,7 @@
     <header class="topbar">
       <div class="topbar-title" id="topbarTitle">Dashboard</div>
       <div class="topbar-right">
+        <img src="logo.png" alt="RETAIL_SALES" style="height:44px;width:auto;object-fit:contain;margin-right:14px;">
         <div class="topbar-user">
           <div class="topbar-avatar">👤</div>
           <div>
@@ -194,7 +195,8 @@
         toko: typeof INIT_TOKO !== 'undefined' ? INIT_TOKO : [],
         plan: typeof INIT_PLAN !== 'undefined' ? INIT_PLAN : [],
         aktifitas: typeof INIT_AKTIFITAS !== 'undefined' ? INIT_AKTIFITAS : [],
-        intel: typeof INIT_INTEL !== 'undefined' ? INIT_INTEL : []
+        intel: typeof INIT_INTEL !== 'undefined' ? INIT_INTEL : [],
+        communication: []
     };
 
     window.dashFilters = { start: '', end: '', pic: isManager ? '' : myPIC, agen: '', toko: '' };
@@ -236,7 +238,7 @@
 
     function normalizePlanStatus() {
         db.plan.forEach(p => {
-            if(p.status !== 'Visited' && p.status !== 'Contacted' && p.status !== 'Cancelled' && p.status !== 'Recreated') {
+            if(p.status !== 'Visited' && p.status !== 'Contacted' && p.status !== 'Cancelled' && p.status !== 'Recreated' && p.status !== 'Recreate Pending') {
                 p.status = (p.planDate < todayStr) ? 'Overdue' : 'Scheduled';
             }
             let diff = Math.ceil((new Date(p.planDate) - new Date(todayStr)) / (1000 * 60 * 60 * 24));
@@ -316,18 +318,33 @@
     function autoAddSetup(key, val) { if(val && db.setup[key] && !db.setup[key].includes(val)) { db.setup[key].push(val); setDB('db_setup', db.setup); } }
 
     window.downloadReportLampiran = function() {
-        let csvContent = "data:text/csv;charset=utf-8,Tanggal,Nama Toko,PIC,Aktifitas,Status Lampiran Foto\n";
-        db.aktifitas.forEach(a => {
-            let p_pic = a.pic || (findTokoByKontak(a.kontakToko) || {}).pic || '-';
-            let row = `${a.tanggalKunjungan},"${a.namaToko}",${p_pic},"${a.aktifitas}",${a.linkTersedia}`;
-            csvContent += row + "\n";
-        });
-        let encodedUri = encodeURI(csvContent);
-        let link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "report_kepatuhan_lampiran.csv");
+        const esc = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+        let rows = [];
+        rows.push(['DASHBOARD DATA EXPORT']);
+        rows.push(['Dibuat', new Date().toISOString()]);
+        rows.push([]);
+        rows.push(['VISIT PLAN']);
+        rows.push(['ID','Kontak Toko','Nama Toko','Tujuan','PIC','Plan Date','Actual Date','Priority','Status','Keterangan','Days Due']);
+        db.plan.forEach(p => rows.push([p.id,p.kontakToko,p.namaToko,p.tujuanKunjungan,p.pic,p.planDate,p.actualDate,p.priority,p.status,p.keterangan,p.daysUntilDue]));
+        rows.push([]);
+        rows.push(['AKTIFITAS']);
+        rows.push(['ID','Visit ID','Kontak Toko','Nama Toko','Tanggal','PIC','Jenis Kunjungan','Aktifitas','Kategori Sampling','Keluhan/Feedback','Link Foto','Status Lampiran','Status']);
+        db.aktifitas.forEach(a => rows.push([a.id,a.visitId,a.kontakToko,a.namaToko,a.tanggalKunjungan,a.pic,a.jenisKunjungan,a.aktifitas,a.kategoriSampling,a.keluhanFeedback,a.linkFoto,a.linkTersedia,a.status]));
+        rows.push([]);
+        rows.push(['INTEL REPORT']);
+        rows.push(['ID','Tanggal','Kontak Toko','Nama Toko','PIC','Kompetitor','Aktivitas Kompetitor','Keterangan']);
+        db.intel.forEach(i => rows.push([i.id,i.date,i.kontakToko,i.namaToko,i.pic,i.kompetitor,i.aktivitasKompetitor,i.keteranganDetail]));
+        rows.push([]);
+        rows.push(['COMMUNICATION LOG']);
+        rows.push(['ID','Nama User','Tanggal Masuk','Sumber Sosial Media','Inti Pembicaraan']);
+        (db.communication || []).forEach(x => rows.push([x.id,x.namaUser,x.tanggalMasuk,x.sumberSosialMedia,x.intiPembicaraan]));
+        const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(r => r.map(esc).join(',')).join('\n');
+        const link = document.createElement('a');
+        link.setAttribute('href', encodeURI(csvContent));
+        link.setAttribute('download', 'dashboard_data_export.csv');
         document.body.appendChild(link);
         link.click();
+        link.remove();
     }
 
     window.handleImportExcel = function(event) {
@@ -493,7 +510,7 @@
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-3xl font-bold">Dashboard Analytics</h1>
             <div>
-                <button onclick="downloadReportLampiran()" class="btn btn-warning text-sm mr-2 text-black shadow-md">📥 Unduh Kepatuhan Foto</button>
+                <button onclick="downloadReportLampiran()" class="btn btn-warning text-sm mr-2 text-black shadow-md">📥 Unduh Data</button>
                 <button onclick="resetFilters()" class="btn btn-secondary text-sm shadow-md">↻ Reset Filter</button>
             </div>
         </div>
@@ -528,6 +545,19 @@
             <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[var(--accent)]">KATEGORI SAMPLING</h3><div class="flex-1 relative w-full h-full"><canvas id="chartSampling"></canvas></div></div>
             <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-amber-600">KEPATUHAN FOTO (PIC)</h3><div class="flex-1 relative w-full h-full"><canvas id="chartLampiran"></canvas></div></div>
             <div class="card h-64 flex flex-col lg:col-span-2 shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[#58bad7]">LAPORAN KOMPETITOR</h3><div class="flex-1 relative w-full h-full"><canvas id="chartKompetitor"></canvas></div></div>
+        </div>
+
+        <div class="card mb-8 shadow-md">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-sm">COMMUNICATION LOG — AER THIA</h3>
+            <button onclick="formCommunication()" class="btn btn-primary text-xs">+ Tambah Komunikasi</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table>
+              <thead><tr><th>NO</th><th>NAMA USER</th><th>TANGGAL MASUK</th><th>SUMBER SOSIAL MEDIA</th><th>INTI PEMBICARAAN</th></tr></thead>
+              <tbody>${(db.communication || []).slice().sort((a,b)=>new Date(b.tanggalMasuk)-new Date(a.tanggalMasuk)).slice(0,3).map((x,i)=>`<tr><td>${i+1}</td><td class="font-bold">${x.namaUser||'-'}</td><td>${x.tanggalMasuk||'-'}</td><td>${x.sumberSosialMedia||'-'}</td><td>${x.intiPembicaraan||'-'}</td></tr>`).join('') || '<tr><td colspan="5" class="text-center text-[var(--text-muted)] py-4">Belum ada Communication Log</td></tr>'}</tbody>
+            </table>
+          </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -779,12 +809,15 @@
       });
 
       let rows = filteredPlans.map(p => {
-        let badgeColor = (p.status==='Overdue' ? 'var(--danger)' : (p.status==='Cancelled' ? '#9a9a9a' : '#ff9f00'));
+        let badgeColor = (p.status==='Overdue' ? 'var(--danger)' : (p.status==='Recreate Pending' ? '#8b5cf6' : (p.status==='Cancelled' ? '#9a9a9a' : '#ff9f00')));
         let txtColor = (p.status==='Scheduled') ? '#ffffff' : '#fff';
         
         let actionBtn = isManager ? `<button onclick="delPlan('${p.id}')" class="text-xs text-[var(--text-muted)] hover:text-[var(--accent)] font-bold ml-2">Del</button>` : '';
-        if(p.status === 'Overdue') { 
-            actionBtn = `<button data-id="${p.id}" data-toko="${p.kontakToko}" data-nama="${p.namaToko}" data-pic="${p.pic}" data-ket="${p.keterangan || ''}" onclick="recreatePlan(this)" class="btn btn-warning text-[10px] px-2 py-1 mr-2">⚠️ Recreate</button>` + actionBtn; 
+        if(p.status === 'Overdue') {
+            actionBtn = `<button data-id="${p.id}" data-toko="${p.kontakToko}" data-nama="${p.namaToko}" data-pic="${p.pic}" data-ket="${p.keterangan || ''}" onclick="recreatePlan(this)" class="btn btn-warning text-[10px] px-2 py-1 mr-2">⚠️ Ajukan Recreate</button>` + actionBtn;
+        }
+        if(p.status === 'Recreate Pending' && isManager) {
+            actionBtn = `<button onclick="approveRecreate('${p.id}', true)" class="btn btn-primary text-[10px] px-2 py-1 mr-1">✓ Confirm</button><button onclick="approveRecreate('${p.id}', false)" class="btn btn-danger text-[10px] px-2 py-1">✕ Decline</button>` + actionBtn;
         }
 
         let tData = findTokoByKontak(p.kontakToko);
@@ -882,7 +915,7 @@
             `<input name="pic" class="input-field text-gray-500" value="${myPIC}" readonly>`;
 
       openModal(`
-        <h2 class="text-xl font-bold mb-4 text-[#58bad7]">${preToko ? '⚠️ Recreate ' + vpLabel : 'Form Rencana Kunjungan'}</h2>
+        <h2 class="text-xl font-bold mb-4 text-[#58bad7]">${preToko ? '⚠️ Ajukan Recreate ' + vpLabel : 'Form Rencana Kunjungan'}</h2>
         <form onsubmit="savePlan(event)">
           <input type="hidden" name="oldPlanId" value="${oldPlanId}">
           <div class="grid grid-cols-2 gap-4 mb-4">
@@ -913,32 +946,80 @@
         formPlan(btn.dataset.toko, btn.dataset.nama, btn.dataset.pic, btn.dataset.ket, btn.dataset.id); 
     }
 
-    function savePlan(e) { 
-      e.preventDefault(); 
-      let obj = Object.fromEntries(new FormData(e.target)); 
-      
+    function savePlan(e) {
+      e.preventDefault();
+      let obj = Object.fromEntries(new FormData(e.target));
       let oldPlanId = obj.oldPlanId;
       delete obj.oldPlanId;
-
-      obj.id = generateId('VP'); 
-      obj.actualDate = ''; 
-      obj.status = 'Scheduled'; 
-      let diff = Math.ceil((new Date(obj.planDate) - new Date(todayStr)) / (1000 * 60 * 60 * 24)); 
-      obj.daysUntilDue = diff; 
-      if (obj.planDate < todayStr) obj.status = 'Overdue'; 
+      obj.id = generateId('VP');
+      obj.actualDate = '';
+      let diff = Math.ceil((new Date(obj.planDate) - new Date(todayStr)) / (1000 * 60 * 60 * 24));
+      obj.daysUntilDue = diff;
+      obj.sourcePlanId = oldPlanId || '';
+      obj.requestedBy = loggedInRole;
+      obj.requestedAt = new Date().toISOString();
+      obj.approvedBy = '';
+      obj.approvedAt = '';
+      obj.decisionNote = '';
 
       if (oldPlanId) {
-          let oldPlanIndex = db.plan.findIndex(p => p.id === oldPlanId);
-          if (oldPlanIndex > -1) {
-              db.plan[oldPlanIndex].status = 'Recreated';
-              db.plan[oldPlanIndex].keterangan = 'Direcreate ke jadwal baru: ' + obj.id;
-          }
+        // Overdue lama TETAP dipertahankan. Recreate menjadi record baru.
+        obj.status = 'Recreate Pending';
+        obj.keterangan = (obj.keterangan || '') + ' | Menunggu konfirmasi Sales Manager';
+      } else {
+        obj.status = obj.planDate < todayStr ? 'Overdue' : 'Scheduled';
       }
 
-      db.plan.push(obj); 
-      setDB('db_plan', db.plan); 
-      closeModal(); 
-      renderPage('visitplan'); 
+      db.plan.push(obj);
+      setDB('db_plan', db.plan);
+      closeModal();
+      renderPage('visitplan');
+      alert(oldPlanId ? 'Pengajuan recreate berhasil dikirim ke Sales Manager.' : 'Rencana Visit berhasil disimpan.');
+    }
+
+    window.approveRecreate = function(planId, approved) {
+      if (!isManager) return;
+      const idx = db.plan.findIndex(p => p.id === planId);
+      if (idx < 0) return;
+      const p = db.plan[idx];
+      p.approvedBy = loggedInRole;
+      p.approvedAt = new Date().toISOString();
+      if (approved) {
+        p.status = p.planDate < todayStr ? 'Overdue' : 'Scheduled';
+        p.keterangan = (p.keterangan || '').replace(' | Menunggu konfirmasi Sales Manager', '') + ' | Recreate dikonfirmasi Sales Manager';
+      } else {
+        p.status = 'Cancelled';
+        p.decisionNote = 'Pengajuan recreate ditolak oleh Sales Manager';
+      }
+      setDB('db_plan', db.plan);
+      renderPage('visitplan');
+    }
+
+    window.formCommunication = function() {
+      if (loggedInRole !== 'AER Thia' && !isManager) { alert('Menu Communication Log khusus AER Thia.'); return; }
+      openModal(`
+        <h2 class="text-xl font-bold mb-4 text-[#58bad7]">Tambah Communication Log</h2>
+        <form onsubmit="saveCommunication(event)">
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div><label class="text-xs">NAMA USER *</label><input required name="namaUser" class="input-field"></div>
+            <div><label class="text-xs">TANGGAL MASUK *</label><input required type="date" name="tanggalMasuk" class="input-field" value="${todayStr}"></div>
+            <div><label class="text-xs">SUMBER SOSIAL MEDIA *</label><input required name="sumberSosialMedia" class="input-field" placeholder="Instagram / Website / TikTok / WhatsApp"></div>
+            <div class="col-span-2"><label class="text-xs">INTI PEMBICARAAN *</label><textarea required name="intiPembicaraan" class="input-field" rows="4"></textarea></div>
+          </div>
+          <div class="flex gap-2 pt-2 border-t border-[var(--border)]"><button type="button" onclick="closeModal()" class="btn btn-secondary">Batal</button><button type="submit" class="btn btn-primary flex-1">Simpan</button></div>
+        </form>
+      `);
+    }
+
+    window.saveCommunication = function(e) {
+      e.preventDefault();
+      const obj = Object.fromEntries(new FormData(e.target));
+      obj.id = generateId('COM');
+      if (!db.communication) db.communication = [];
+      db.communication.push(obj);
+      setDB('db_communication', db.communication);
+      closeModal();
+      renderPage('dashboard');
     }
 
     function renderAktifitas(c) {
@@ -1222,6 +1303,7 @@
                 db.plan = cloudData.plan && cloudData.plan.length ? cloudData.plan : db.plan;
                 db.aktifitas = cloudData.aktifitas && cloudData.aktifitas.length ? cloudData.aktifitas : db.aktifitas;
                 db.intel = cloudData.intel && cloudData.intel.length ? cloudData.intel : db.intel;
+                db.communication = cloudData.communication || db.communication || [];
                 hideCloudStatus();
             } else {
                 showCloudStatus('⚠️ Gagal terhubung ke Google Sheet. Memakai data cadangan (offline) — perubahan TIDAK akan tersimpan ke cloud.', true);

@@ -14,7 +14,8 @@ const KEY_TO_SHEET = {
   db_toko: 'toko',
   db_plan: 'plan',
   db_aktifitas: 'aktifitas',
-  db_intel: 'intel'
+  db_intel: 'intel',
+  db_communication: 'communication'
 };
 
 // ---- Ambil seluruh data dari Google Sheet (dipanggil sekali saat load) ----
