@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retail Support CRM - Manager & Sales Edition</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  
+  <script src="db_setup.js"></script>
+  <script src="db_toko.js"></script>
+  <script src="db_plan.js"></script>
+  <script src="db_aktifitas.js"></script>
+  <script src="db_intel.js"></script>
+  <script src="db-cloud.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root { 
+        --bg-dark: #f5f5f5; 
+        --bg-panel: #ffffff; 
+        --text-main: #2c2c2c; 
+        --text-muted: #888888; 
+        --border: #e9ecef; 
+        --accent: #0d99ff; 
+        --accent-hover: #0b85e0; 
+        --accent-glow: rgba(13, 153, 255, 0.08);
+        --danger: #ff5e5e; 
+        --purple-grad: linear-gradient(135deg, #0d99ff 0%, #58bad7 100%);
+    }
+    body { background-color: var(--bg-dark); color: var(--text-muted); font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif; overflow-x: hidden; }
+    h1, h2, h3, h4, h5, h6 { color: var(--text-main); }
+    
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: var(--bg-dark); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 4px; border: 2px solid var(--bg-dark); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    .sidebar { background-color: var(--bg-panel); border-right: 1px solid var(--border); }
+    .brand-mark { width: 34px; height: 34px; border-radius: 10px; background: var(--purple-grad); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(13,153,255,.25); flex-shrink: 0; }
+    .nav-btn { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 10px 16px; margin: 2px 12px; width: calc(100% - 24px); border-radius: 0.6rem; color: var(--text-muted); cursor: pointer; transition: 0.15s; background: none; border: none; font-size: 13.5px; }
+    .nav-icon { display: flex; align-items: center; justify-content: center; opacity: .85; flex-shrink: 0; }
+    .nav-btn:hover { background-color: #f2f9ff; color: var(--accent); }
+    .nav-btn.active { background: #e9f6ff; color: var(--accent); font-weight: 600; }
+    .nav-btn.active .nav-icon { opacity: 1; }
+
+    .topbar { height: 64px; flex-shrink: 0; background-color: #2c2c2c; border-bottom: 1px solid #3a3a3a; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; }
+    .topbar-title { font-size: 17px; font-weight: 700; color: #ffffff; letter-spacing: .01em; }
+    .topbar-right { display: flex; align-items: center; gap: 16px; }
+    .topbar-user { display: flex; align-items: center; gap: 10px; padding-right: 16px; border-right: 1px solid #444444; }
+    .topbar-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--purple-grad); display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 3px 10px rgba(13,153,255,.25); }
+
+    .card { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 1rem; padding: 20px; box-shadow: 0rem 0.3125rem 0.3125rem rgba(82, 63, 105, 0.04); }
+    
+    .table-wrapper { overflow: auto; max-height: calc(100vh - 160px); }
+    
+    .input-field { width: 100%; background-color: #ffffff; border: 1px solid var(--border); color: var(--text-main); padding: 8px 12px; border-radius: 0.5rem; margin-top: 4px; }
+    .input-field:focus { outline: none; border-color: var(--accent); }
+    .input-field:disabled, .input-field[readonly] { opacity: 0.7; cursor: not-allowed; background-color: var(--bg-dark); }
+    
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    
+    th { 
+        background-color: var(--bg-dark); 
+        color: var(--text-muted); 
+        padding: 12px; 
+        text-align: left; 
+        white-space: nowrap; 
+        position: sticky; 
+        top: 0; 
+        z-index: 10;
+        box-shadow: 0 1px 0 var(--border);
+    }
+    
+    td { padding: 12px; border-bottom: 1px solid var(--border); white-space: nowrap; color: var(--text-main); }
+    tr:hover td { background-color: var(--bg-dark); }
+    
+    .btn { padding: 8px 16px; border-radius: 0.5rem; font-weight: 500; cursor: pointer; transition: 0.2s; border: none;}
+    .btn-primary { background: var(--purple-grad); color: #ffffff; font-weight: 700; box-shadow: 0 4px 12px rgba(13, 153, 255, 0.3); }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-secondary { background-color: #eef0f2; color: var(--text-main); }
+    .btn-secondary:hover { background-color: #e2e4e7; }
+    .btn-warning { background-color: #ff9f00; color: #ffffff; font-weight: bold; }
+    .badge { padding: 4px 10px; border-radius: 50rem; font-size: 12px; font-weight: 600; }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(20,20,20,0.55); z-index: 50; align-items: center; justify-content: center; }
+    .modal-content { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 1rem; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.25); }
+    .icon-badge { width: 44px; height: 44px; border-radius: 0.7rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  </style>
+</head>
+<body class="flex h-screen">
+
+  <aside class="sidebar w-64 flex-shrink-0 flex flex-col">
+    <div class="p-6 border-b border-[var(--border)] flex items-center gap-3">
+      <div class="brand-mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 21V9L12 3L21 9V21H14V14H10V21H3Z" fill="white"/></svg>
+      </div>
+      <h1 class="text-lg font-bold tracking-wider text-[var(--text-main)]">RETAIL SUPPORT</h1>
+    </div>
+
+    <nav class="flex-1 py-4">
+      <button id="nav-dash" class="nav-btn active" onclick="navigate('dashboard', this)">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 7.5L10 1.67L17.5 7.5V16.67C17.5 17.11 17.32 17.53 17.01 17.85C16.7 18.16 16.28 18.33 15.83 18.33H4.17C3.72 18.33 3.3 18.16 2.99 17.85C2.68 17.53 2.5 17.11 2.5 16.67V7.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.5 18.33V10H12.5V18.33" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="nav-label">Dashboard</span>
+      </button>
+      <button id="nav-setup" class="nav-btn" onclick="navigate('setup', this)">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 12.5C11.38 12.5 12.5 11.38 12.5 10C12.5 8.62 11.38 7.5 10 7.5C8.62 7.5 7.5 8.62 7.5 10C7.5 11.38 8.62 12.5 10 12.5Z" stroke="currentColor" stroke-width="1.5"/><path d="M16.17 12.5C16.05 12.78 16.01 13.09 16.06 13.39C16.11 13.7 16.24 13.98 16.44 14.21L16.5 14.27C16.66 14.43 16.79 14.62 16.88 14.83C16.97 15.04 17.02 15.27 17.02 15.5C17.02 15.73 16.97 15.96 16.88 16.17C16.79 16.38 16.66 16.57 16.5 16.73C16.34 16.89 16.15 17.02 15.94 17.11C15.73 17.2 15.5 17.25 15.27 17.25C15.04 17.25 14.81 17.2 14.6 17.11C14.39 17.02 14.2 16.89 14.04 16.73L13.98 16.67C13.75 16.47 13.47 16.34 13.16 16.29C12.86 16.24 12.55 16.28 12.27 16.4C12 16.51 11.76 16.7 11.6 16.94C11.43 17.18 11.34 17.46 11.33 17.75V17.92C11.33 18.38 11.15 18.82 10.82 19.15C10.49 19.48 10.05 19.67 9.58 19.67C9.12 19.67 8.68 19.48 8.35 19.15C8.02 18.82 7.83 18.38 7.83 17.92V17.83C7.82 17.53 7.72 17.24 7.54 17C7.36 16.75 7.11 16.57 6.83 16.47C6.55 16.35 6.24 16.31 5.94 16.36C5.63 16.41 5.35 16.54 5.12 16.74L5.06 16.8C4.9 16.96 4.71 17.09 4.5 17.18C4.29 17.27 4.06 17.32 3.83 17.32C3.6 17.32 3.37 17.27 3.16 17.18C2.95 17.09 2.76 16.96 2.6 16.8C2.44 16.64 2.31 16.45 2.22 16.24C2.13 16.03 2.08 15.8 2.08 15.57C2.08 15.34 2.13 15.11 2.22 14.9C2.31 14.69 2.44 14.5 2.6 14.34L2.66 14.28C2.86 14.05 2.99 13.77 3.04 13.46C3.09 13.16 3.05 12.85 2.93 12.57C2.82 12.3 2.63 12.06 2.39 11.9C2.15 11.73 1.87 11.64 1.58 11.63H1.41C0.945 11.63 0.5 11.44 0.171 11.11C-0.157 10.79 -0.35 10.34 -0.35 9.88C-0.35 9.41 -0.157 8.97 0.171 8.64C0.5 8.31 0.945 8.12 1.41 8.12H1.5C1.8 8.11 2.09 8.01 2.33 7.83C2.58 7.65 2.76 7.4 2.86 7.12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="nav-label">Setup Master</span>
+      </button>
+      <button class="nav-btn" onclick="navigate('daftartoko', this)">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 8.33L3.33 2.5H16.67L17.5 8.33" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.5 8.33C2.5 9.25 3.25 10 4.17 10C5.08 10 5.83 9.25 5.83 8.33C5.83 9.25 6.58 10 7.5 10C8.42 10 9.17 9.25 9.17 8.33C9.17 9.25 9.92 10 10.83 10C11.75 10 12.5 9.25 12.5 8.33C12.5 9.25 13.25 10 14.17 10C15.08 10 15.83 9.25 15.83 8.33C15.83 9.25 16.58 10 17.5 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.17 10V17.5H15.83V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.33 17.5V13.33H11.67V17.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="nav-label">Daftar Toko</span>
+      </button>
+      <button id="nav-visitplan" class="nav-btn" onclick="navigate('visitplan', this)">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2.5" y="3.33" width="15" height="14.17" rx="1.67" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 7.5H17.5" stroke="currentColor" stroke-width="1.5"/><path d="M6.67 1.67V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M13.33 1.67V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+        <span class="nav-label">Visit Plan</span>
+      </button>
+      <button class="nav-btn" onclick="navigate('aktifitas', this)">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 10.83H6.67L8.33 15.83L11.67 5.83L13.33 10.83H17.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="nav-label">Aktifitas</span>
+      </button>
+      <button id="nav-communication" class="nav-btn" onclick="navigate('communication', this)">
+        <span class="nav-icon">💬</span>
+        <span class="nav-label">Communication Log</span>
+      </button>
+      <button class="nav-btn" onclick="navigate('intelejen', this)">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="3.33" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="0.83" fill="currentColor"/></svg></span>
+        <span class="nav-label">Intelejen Report</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-foot px-4 py-4 border-t border-[var(--border)]">
+      <div class="text-[10px] text-[#6b6b6b] text-center">Retail Support CRM &copy; 2026</div>
+    </div>
+  </aside>
+
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <header class="topbar">
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-right">
+        <img src="logo.png" alt="RETAIL_SALES" style="height:44px;width:auto;object-fit:contain;margin-right:14px;">
+        <div class="topbar-user">
+          <div class="topbar-avatar">👤</div>
+          <div>
+            <div class="text-[9px] text-[#9a9a9a] uppercase tracking-wider leading-none mb-1">Logged in as</div>
+            <div id="userProfileDisplay" class="text-white font-bold text-xs leading-none">Memuat...</div>
+          </div>
+        </div>
+        <button onclick="logoutSystem()" class="btn btn-secondary text-xs py-2 px-3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200">🚪 Log Out</button>
+      </div>
+    </header>
+
+    <main class="flex-1 overflow-auto p-8" id="app-content"></main>
+  </div>
+
+  <div class="modal" id="modal"><div class="modal-content" id="modal-body"></div></div>
+
+  <div id="cloudStatusBar" style="display:none; position:fixed; bottom:16px; right:16px; z-index:100; max-width:360px; padding:12px 16px; border-radius:8px; font-size:13px; box-shadow:0 4px 12px rgba(0,0,0,0.4);"></div>
+
+
+  <script>
+    // ---- Gaya visual global Chart.js, disamakan dengan tema W3CRM ----
+    // (murni tampilan; tidak menyentuh logic/data chart manapun)
+    if (typeof Chart !== 'undefined') {
+      Chart.defaults.font.family = "'Poppins', ui-sans-serif, system-ui, sans-serif";
+      Chart.defaults.color = '#9a9a9a';
+      Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+      Chart.defaults.plugins.tooltip.backgroundColor = '#2f2f2f';
+      Chart.defaults.plugins.tooltip.titleColor = '#ffffff';
+      Chart.defaults.plugins.tooltip.bodyColor = '#e5e5e5';
+      Chart.defaults.plugins.tooltip.borderColor = '#444444';
+      Chart.defaults.plugins.tooltip.borderWidth = 1;
+      Chart.defaults.plugins.tooltip.padding = 10;
+      Chart.defaults.plugins.tooltip.cornerRadius = 8;
+      Chart.defaults.plugins.tooltip.displayColors = true;
+    }
+
+    const loggedInRole = sessionStorage.getItem('crm_logged_in_role');
+    
+    if (!loggedInRole) {
+        window.location.href = 'index.html';
+    }
+
+    function logoutSystem() {
+        if(confirm("Apakah Anda yakin ingin keluar dari sistem?")) {
+            sessionStorage.removeItem('crm_logged_in_role');
+            window.location.href = 'index.html';
+        }
+    }
+
+    const myPIC = loggedInRole === 'RFS Ali' ? 'Ali' : (loggedInRole === 'AER Thia' ? 'Thia' : '');
+    const isManager = loggedInRole === 'Sales Manager';
+
+    let db = {
+        setup: typeof INIT_SETUP !== 'undefined' ? INIT_SETUP : {},
+        toko: typeof INIT_TOKO !== 'undefined' ? INIT_TOKO : [],
+        plan: typeof INIT_PLAN !== 'undefined' ? INIT_PLAN : [],
+        aktifitas: typeof INIT_AKTIFITAS !== 'undefined' ? INIT_AKTIFITAS : [],
+        intel: typeof INIT_INTEL !== 'undefined' ? INIT_INTEL : [],
+        communication: []
+    };
+
+    window.dashFilters = { start: '', end: '', pic: isManager ? '' : myPIC, agen: '', toko: '' };
+    window.vpFilters = { pic: isManager ? '' : myPIC }; 
+    window.actFilters = { jenis: '' }; 
+    window.currentUserRole = loggedInRole;
+    window.currentPage = 'dashboard';
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    
+    function parseTargetKunjungan(val) {
+      if (!val) return 0;
+      if (typeof val === 'number') return val;
+      const match = String(val).match(/\d+/);
+      return match ? parseInt(match[0], 10) : 0;
+    }
+
+    function getSalesTargetMap(type) {
+      let key = type === 'REMOTE' ? 'TARGET_REMOTE' : 'TARGET_VISITED';
+      let map = {};
+      (db.setup[key] || []).forEach(row => {
+        let parts = String(row).split(':');
+        if (parts.length >= 2) map[parts[0].trim()] = parseInt(parts[1], 10) || 0;
+      });
+      return map;
+    }
+
+    function getSalesTarget(type, picName) {
+      let map = getSalesTargetMap(type);
+      if (picName) return map[picName] || 0;
+      return Object.values(map).reduce((a, b) => a + b, 0);
+    }
+
+    function saveSalesTargetMap(type, mapObj) {
+      let key = type === 'REMOTE' ? 'TARGET_REMOTE' : 'TARGET_VISITED';
+      db.setup[key] = Object.keys(mapObj).map(pic => `${pic}:${mapObj[pic]}`);
+      setDB('db_setup', db.setup);
+    }
+
+    function normalizePlanStatus() {
+        db.plan.forEach(p => {
+            if(p.status !== 'Visited' && p.status !== 'Contacted' && p.status !== 'Cancelled' && p.status !== 'Recreated' && p.status !== 'Recreate Pending') {
+                p.status = (p.planDate < todayStr) ? 'Overdue' : 'Scheduled';
+            }
+            let diff = Math.ceil((new Date(p.planDate) - new Date(todayStr)) / (1000 * 60 * 60 * 24));
+            p.daysUntilDue = (p.status === 'Visited' || p.status === 'Contacted' || p.status === 'Cancelled' || p.status === 'Recreated') ? 'Done' : diff;
+        });
+    }
+
+    function applyRoleRestrictions(role) {
+        document.getElementById('userProfileDisplay').innerText = `👤 ${role}`;
+
+        const normalizedRole = String(role || '').trim().toLowerCase();
+        const isSalesManager = normalizedRole === 'sales manager';
+        const isAERThia = normalizedRole === 'aer thia';
+
+        const vpBtn = document.getElementById('nav-visitplan');
+        const vpLabel = vpBtn ? (vpBtn.querySelector('.nav-label') || vpBtn) : null;
+
+        if (vpLabel) {
+            vpLabel.innerText = isAERThia ? 'Contact Plan' : 'Visit Plan';
+        }
+
+        const setupBtn = document.getElementById('nav-setup');
+        if (setupBtn) {
+            setupBtn.style.display = isSalesManager ? 'flex' : 'none';
+        }
+
+        const communicationBtn = document.getElementById('nav-communication');
+        if (communicationBtn) {
+            communicationBtn.style.display =
+                (isAERThia || isSalesManager) ? 'flex' : 'none';
+        }
+
+        // RFS Ali dan role lain tidak dapat membuka Communication Log.
+        if (!isAERThia && !isSalesManager && window.currentPage === 'communication') {
+            window.currentPage = 'dashboard';
+        }
+
+        renderPage(window.currentPage);
+    }
+
+    function navigate(page, btnElement) {
+        const normalizedRole = String(loggedInRole || '').trim().toLowerCase();
+        const canAccessCommunication =
+            normalizedRole === 'aer thia' ||
+            normalizedRole === 'sales manager';
+
+        if (page === 'communication' && !canAccessCommunication) {
+            alert('Anda tidak memiliki akses ke Communication Log.');
+            return;
+        }
+
+        if(btnElement) {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+        }
+
+        window.currentPage = page;
+
+        let titles = {
+            dashboard: 'Dashboard',
+            setup: 'Setup Master',
+            daftartoko: 'Daftar Toko',
+            visitplan: 'Visit Plan',
+            aktifitas: 'Aktifitas',
+            intelejen: 'Intelejen Report',
+            communication: 'Communication Log'
+        };
+
+        document.getElementById('topbarTitle').innerText = titles[page] || 'Dashboard';
+        renderPage(page);
+    }
+
+    function renderPage(page) {
+      const content = document.getElementById('app-content');
+      if(page === 'dashboard') renderDashboard(content);
+      if(page === 'setup') renderSetup(content);
+      if(page === 'daftartoko') renderDaftarToko(content);
+      if(page === 'visitplan') renderVisitPlan(content);
+      if(page === 'aktifitas') renderAktifitas(content);
+      if(page === 'intelejen') renderIntelejen(content);
+      if(page === 'communication') renderCommunication(content);
+    }
+
+    function openModal(html) { document.getElementById('modal-body').innerHTML = html; document.getElementById('modal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('modal').style.display = 'none'; }
+    function optionsHtml(arrayData, selectedValue = '') { return arrayData ? arrayData.map(val => `<option value="${val}" ${String(val).trim().toLowerCase() === String(selectedValue).trim().toLowerCase() ? 'selected' : ''}>${val}</option>`).join('') : ''; }
+    function generateId(prefix) { return prefix + Math.random().toString(36).substr(2, 5).toUpperCase(); }
+
+    function normKontak(s) { return String(s || '').trim().replace(/\s+/g, ' '); }
+    function findTokoByKontak(kontakToko) {
+      let target = normKontak(kontakToko);
+      return db.toko.find(t => normKontak(t.kodeKontak) === target);
+    }
+
+    // Perbandingan PIC yang toleran huruf besar/kecil & spasi (mis. "ALI" di sheet vs "Ali" di kode)
+    function normPic(s) { return String(s || '').trim().toLowerCase(); }
+    function samePic(a, b) { return normPic(a) === normPic(b); }
+
+    function delToko(id) { if(confirm('Hapus Toko ini?')) { db.toko = db.toko.filter(t => t.contactId !== id); setDB('db_toko', db.toko); renderPage('daftartoko'); } }
+    function delPlan(id) { if(confirm('Hapus Visit Plan ini?')) { db.plan = db.plan.filter(p => p.id !== id); setDB('db_plan', db.plan); renderPage('visitplan'); } }
+    function delAktifitas(id) { if(confirm('Hapus Aktifitas ini?')) { db.aktifitas = db.aktifitas.filter(a => a.id !== id); setDB('db_aktifitas', db.aktifitas); renderPage('aktifitas'); } }
+
+    function htmlEscapeAttr(str) { return String(str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    window.updateNextAction = function(id, value) {
+      let idx = db.aktifitas.findIndex(a => a.id === id);
+      if (idx > -1) {
+        db.aktifitas[idx].nextAction = value;
+        setDB('db_aktifitas', db.aktifitas);
+      }
+    };
+    function delIntel(id) { if(confirm('Hapus Report ini?')) { db.intel = db.intel.filter(i => i.id !== id); setDB('db_intel', db.intel); renderPage('intelejen'); } }
+
+    window.resetFilters = function() { window.dashFilters = { start: '', end: '', pic: isManager ? '' : myPIC, agen: '', toko: '' }; renderPage('dashboard'); }
+    function autoAddSetup(key, val) { if(val && db.setup[key] && !db.setup[key].includes(val)) { db.setup[key].push(val); setDB('db_setup', db.setup); } }
+
+    window.downloadReportLampiran = function() {
+        const esc = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+        let rows = [];
+        rows.push(['DASHBOARD DATA EXPORT']);
+        rows.push(['Dibuat', new Date().toISOString()]);
+        rows.push([]);
+        rows.push(['VISIT PLAN']);
+        rows.push(['ID','Kontak Toko','Nama Toko','Tujuan','PIC','Plan Date','Actual Date','Priority','Status','Keterangan','Days Due']);
+        db.plan.forEach(p => rows.push([p.id,p.kontakToko,p.namaToko,p.tujuanKunjungan,p.pic,p.planDate,p.actualDate,p.priority,p.status,p.keterangan,p.daysUntilDue]));
+        rows.push([]);
+        rows.push(['AKTIFITAS']);
+        rows.push(['ID','Visit ID','Kontak Toko','Nama Toko','Tanggal','PIC','Jenis Kunjungan','Aktifitas','Kategori Sampling','Keluhan/Feedback','Link Foto','Status Lampiran','Status']);
+        db.aktifitas.forEach(a => rows.push([a.id,a.visitId,a.kontakToko,a.namaToko,a.tanggalKunjungan,a.pic,a.jenisKunjungan,a.aktifitas,a.kategoriSampling,a.keluhanFeedback,a.linkFoto,a.linkTersedia,a.status]));
+        rows.push([]);
+        rows.push(['INTEL REPORT']);
+        rows.push(['ID','Tanggal','Kontak Toko','Nama Toko','PIC','Kompetitor','Aktivitas Kompetitor','Keterangan']);
+        db.intel.forEach(i => rows.push([i.id,i.date,i.kontakToko,i.namaToko,i.pic,i.kompetitor,i.aktivitasKompetitor,i.keteranganDetail]));
+        rows.push([]);
+        rows.push(['COMMUNICATION LOG']);
+        rows.push(['ID','Nama User','Tanggal Masuk','Sumber Sosial Media','Inti Pembicaraan']);
+        (db.communication || []).forEach(x => rows.push([x.id,x.namaUser,x.tanggalMasuk,x.sumberSosialMedia,x.intiPembicaraan]));
+        const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(r => r.map(esc).join(',')).join('\n');
+        const link = document.createElement('a');
+        link.setAttribute('href', encodeURI(csvContent));
+        link.setAttribute('download', 'dashboard_data_export.csv');
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    }
+
+    window.handleImportExcel = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            
+            let sheetName = workbook.SheetNames.includes('Daftar Toko') ? 'Daftar Toko' : workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            
+            let headerRowIndex = -1;
+            for(let i = 0; i < jsonData.length; i++) {
+                if(jsonData[i] && jsonData[i].includes('CONTACT ID')) { headerRowIndex = i; break; }
+            }
+
+            if(headerRowIndex === -1) { alert("Gagal Import: Tidak menemukan kolom 'CONTACT ID'."); return; }
+
+            let headers = jsonData[headerRowIndex];
+            let addedCount = 0; let updatedCount = 0;
+
+            for(let i = headerRowIndex + 1; i < jsonData.length; i++) {
+                let row = jsonData[i];
+                if(!row || row.length === 0 || !row[headers.indexOf('CONTACT ID')]) continue; 
+
+                let rawTarget = row[headers.indexOf('TARGET KUNJUNGAN')];
+                let targetKunjungan = rawTarget ? String(rawTarget).trim() : '1 x Sebulan';
+                let rawLastVisit = row[headers.indexOf('LAST VISIT')];
+                let lastVisit = '';
+                if (rawLastVisit) {
+                  if (rawLastVisit instanceof Date) { lastVisit = rawLastVisit.toISOString().split('T')[0]; } 
+                  else if (typeof rawLastVisit === 'number') { let d = new Date(Math.round((rawLastVisit - 25569) * 86400 * 1000)); lastVisit = d.toISOString().split('T')[0]; } 
+                  else { lastVisit = String(rawLastVisit).trim(); }
+                }
+
+                let newObj = {
+                    contactId: String(row[headers.indexOf('CONTACT ID')] || '').trim(),
+                    namaToko: String(row[headers.indexOf('NAMA TOKO')] || '').trim(),
+                    contactPerson: String(row[headers.indexOf('CONTACT PERSON')] || '').trim(),
+                    jobTitle: String(row[headers.indexOf('JOB TITLE')] || '').trim(),
+                    phone: String(row[headers.indexOf('PHONE')] || '').trim(),
+                    location: String(row[headers.indexOf('LOCATION')] || '').trim(),
+                    orderKe: String(row[headers.indexOf('ORDER KE')] || '').trim(),
+                    status: String(row[headers.indexOf('STATUS')] || '').trim(),
+                    jenisKunjungan: String(row[headers.indexOf('JENIS KUNJUNGAN')] || '').trim(),
+                    pic: String(row[headers.indexOf('PIC')] || '').trim(),
+                    mapsLink: String(row[headers.indexOf('MAPS LINK')] || '').trim(),
+                    targetKunjungan: targetKunjungan,
+                    lastVisit: lastVisit
+                };
+                newObj.kodeKontak = `[${newObj.contactId}] ${newObj.contactPerson}`;
+
+                autoAddSetup('ORDER_KE', newObj.orderKe);
+                autoAddSetup('STATUS_TOKO', newObj.status);
+                autoAddSetup('JENIS_KUNJUNGAN', newObj.jenisKunjungan);
+                autoAddSetup('PIC', newObj.pic);
+
+                let existingIdx = db.toko.findIndex(t => t.contactId === newObj.contactId);
+                if(existingIdx > -1) {
+                    newObj.lastVisit = db.toko[existingIdx].lastVisit || lastVisit;
+                    db.toko[existingIdx] = newObj; updatedCount++;
+                } else {
+                    db.toko.push(newObj); addedCount++;
+                }
+            }
+            setDB('db_toko', db.toko);
+            alert(`SINKRONISASI BERHASIL!\n\nData Baru: ${addedCount}\nDiperbarui: ${updatedCount}`);
+            renderPage('daftartoko'); 
+        };
+        reader.readAsArrayBuffer(file);
+    };
+
+    function renderDashboard(c) {
+      let fStart = document.getElementById('dashStart') ? document.getElementById('dashStart').value : window.dashFilters.start;
+      let fEnd = document.getElementById('dashEnd') ? document.getElementById('dashEnd').value : window.dashFilters.end;
+      let fToko = document.getElementById('dashToko') ? document.getElementById('dashToko').value : window.dashFilters.toko;
+      
+      let fPIC = isManager ? (document.getElementById('dashPIC') ? document.getElementById('dashPIC').value : window.dashFilters.pic) : myPIC;
+      let fAgen = document.getElementById('dashAgen') ? document.getElementById('dashAgen').value : window.dashFilters.agen;
+      
+      window.dashFilters = { start: fStart, end: fEnd, pic: fPIC, agen: fAgen, toko: fToko };
+      let tokoMap = {}; db.toko.forEach(t => { let v = { pic: t.pic, orderKe: t.orderKe, status: t.status }; tokoMap[t.kodeKontak] = v; tokoMap[normKontak(t.kodeKontak)] = v; });
+
+      const baseF_Plan = p => { if(fStart && p.planDate < fStart) return false; if(fEnd && p.planDate > fEnd) return false; if(fToko && p.kontakToko !== fToko) return false; return true; };
+      const baseF_Akt = a => { if(fStart && a.tanggalKunjungan < fStart) return false; if(fEnd && a.tanggalKunjungan > fEnd) return false; if(fToko && a.kontakToko !== fToko) return false; return true; };
+      const baseF_Intel = i => { if(fStart && i.date < fStart) return false; if(fEnd && i.date > fEnd) return false; if(fToko && i.kontakToko !== fToko) return false; return true; };
+
+      let fPlanCombined = db.plan.filter(p => baseF_Plan(p) && (!fPIC || samePic(p.pic, fPIC)) && (!fAgen || (tokoMap[normKontak(p.kontakToko)] && tokoMap[normKontak(p.kontakToko)].orderKe === fAgen)));
+      let fAktifitasCombined = db.aktifitas.filter(a => baseF_Akt(a) && (!fPIC || (a.pic ? samePic(a.pic, fPIC) : (tokoMap[normKontak(a.kontakToko)] && samePic(tokoMap[normKontak(a.kontakToko)].pic, fPIC)))) && (!fAgen || (tokoMap[normKontak(a.kontakToko)] && tokoMap[normKontak(a.kontakToko)].orderKe === fAgen)));
+      let fIntelCombined = db.intel.filter(i => baseF_Intel(i) && (!fPIC || (i.pic ? samePic(i.pic, fPIC) : (tokoMap[normKontak(i.kontakToko)] && samePic(tokoMap[normKontak(i.kontakToko)].pic, fPIC)))) && (!fAgen || (tokoMap[normKontak(i.kontakToko)] && tokoMap[normKontak(i.kontakToko)].orderKe === fAgen)));
+      
+      let kpi_tokoAktif = db.toko.filter(t => (t.contactId && String(t.contactId).trim() !== '') || (t.kodeKontak && String(t.kodeKontak).trim() !== '')).length;
+
+      let c_visited = fPlanCombined.filter(p=>p.status==='Visited').length;
+      let c_contacted = fPlanCombined.filter(p=>p.status==='Contacted').length;
+      let c_scheduled = fPlanCombined.filter(p=>p.status==='Scheduled').length;
+      let c_overdue = fPlanCombined.filter(p=>p.status==='Overdue').length;
+      let c_cancelled = fPlanCombined.filter(p=>p.status==='Cancelled').length;
+
+      let kpi_targetVisited = getSalesTarget('VISITED', fPIC);
+      let kpi_targetRemote = getSalesTarget('REMOTE', fPIC);
+
+      let kpi_realisasiVisited = c_visited;
+      let kpi_realisasiRemote = c_contacted;
+
+      let kpi_persentaseVisited = kpi_targetVisited > 0 ? Math.round((kpi_realisasiVisited / kpi_targetVisited) * 100) : 0;
+      let kpi_persentaseRemote = kpi_targetRemote > 0 ? Math.round((kpi_realisasiRemote / kpi_targetRemote) * 100) : 0;
+
+      let kpi_realisasi = c_visited + c_contacted;
+      let kpi_targetTotal = kpi_targetVisited + kpi_targetRemote;
+      let kpi_persentaseTotal = kpi_targetTotal > 0 ? Math.round((kpi_realisasi / kpi_targetTotal) * 100) : 0;
+
+      let compData = {}; fIntelCombined.forEach(i => { let k = i.kompetitor || 'Unknown'; if(k) compData[k] = (compData[k] || 0) + 1; });
+      let issueData = {}; fAktifitasCombined.forEach(a => { if(a.keluhanFeedback && a.keluhanFeedback !== 'Tidak ada keluhan') issueData[a.keluhanFeedback] = (issueData[a.keluhanFeedback] || 0) + 1; });
+      let samplingData = {}; fAktifitasCombined.forEach(a => { if(a.kategoriSampling) samplingData[a.kategoriSampling] = (samplingData[a.kategoriSampling] || 0) + 1; });
+
+      let lampiranByPIC = {};
+      db.setup.PIC.forEach(p => { lampiranByPIC[p] = { 'Melampirkan': 0, 'Tidak Melampirkan': 0 }; });
+      
+      fAktifitasCombined.forEach(a => {
+        let picNama = a.pic || (tokoMap[normKontak(a.kontakToko)] && tokoMap[normKontak(a.kontakToko)].pic);
+        if (!picNama || picNama.trim() === '' || picNama === '-') picNama = 'Lainnya';
+
+        // ATURAN KHUSUS chart KEPATUHAN FOTO (PIC) ini SAJA: untuk PIC Ali,
+        // hanya kunjungan dengan Jenis Kunjungan = 'Kunjungan Fisik' yang
+        // dihitung ke KPI/chart ini. Jenis kunjungan lain (Remote Coverage
+        // Call/WA, Canvasing, Event ICI, dst) milik Ali TIDAK dihitung &
+        // tidak ikut tampil di chart ini. Dicek langsung dari jenisKunjungan
+        // tiap aktifitas (bukan dari nilai linkTersedia yang tersimpan),
+        // supaya chart ini tetap akurat walau ada data lama di Sheet yang
+        // sempat tersimpan salah akibat bug sebelumnya. Aturan ini TIDAK
+        // memengaruhi KPI/chart lain di Dashboard maupun tabel Aktifitas.
+        if (samePic(picNama, 'Ali')) {
+          let jk = String(a.jenisKunjungan || '').trim().toLowerCase();
+          if (jk !== 'kunjungan fisik') return;
+        }
+        
+        let statusFotoA = (a.linkTersedia === 'Melampirkan' || a.linkTersedia === 'Tidak Melampirkan')
+          ? a.linkTersedia
+          : ((a.linkFoto && a.linkFoto.trim() !== '') ? 'Melampirkan' : 'Tidak Melampirkan');
+
+        if (!lampiranByPIC[picNama]) lampiranByPIC[picNama] = { 'Melampirkan': 0, 'Tidak Melampirkan': 0 };
+        lampiranByPIC[picNama][statusFotoA]++;
+      });
+      let picLampiranLabels = Object.keys(lampiranByPIC).filter(p => (lampiranByPIC[p]['Melampirkan'] + lampiranByPIC[p]['Tidak Melampirkan']) > 0);
+      if (picLampiranLabels.length === 0) picLampiranLabels = Object.keys(lampiranByPIC);
+
+      let optToko = db.toko.filter(t => isManager || samePic(t.pic, myPIC))
+                           .map(t => `<option value="${t.kodeKontak}" ${fToko === t.kodeKontak ? 'selected':''}>${t.namaToko}</option>`).join('');
+      let upcomingPlan = db.plan.filter(p => p.status === 'Scheduled' && p.planDate >= todayStr && (!fPIC || samePic(p.pic, fPIC)) && (!fAgen || (tokoMap[normKontak(p.kontakToko)] && tokoMap[normKontak(p.kontakToko)].orderKe === fAgen))).sort((a,b) => new Date(a.planDate) - new Date(b.planDate));
+      let actionTableData = fAktifitasCombined
+        .filter(a => a.keluhanFeedback && a.keluhanFeedback.trim() !== '' && a.keluhanFeedback !== 'Tidak ada keluhan')
+        .sort((a, b) => new Date(b.tanggalKunjungan) - new Date(a.tanggalKunjungan))
+        .slice(0, 5);
+
+      let picFilterHtml = isManager ? `<div><label class="text-xs text-[#58bad7] font-bold mb-1 block">FILTER PIC</label><select id="dashPIC" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua PIC --</option>${optionsHtml(db.setup.PIC, fPIC)}</select></div>` : '';
+
+      c.innerHTML = `
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold">Dashboard Analytics</h1>
+            <div>
+                <button onclick="downloadReportLampiran()" class="btn btn-warning text-sm mr-2 text-black shadow-md">📥 Unduh Data</button>
+                <button onclick="resetFilters()" class="btn btn-secondary text-sm shadow-md">↻ Reset Filter</button>
+            </div>
+        </div>
+        
+        <div class="card mb-6 shadow-md">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+               <div><label class="text-xs text-[var(--accent)] font-bold mb-1 block">TANGGAL MULAI</label><input type="date" id="dashStart" value="${fStart}" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"></div>
+               <div><label class="text-xs text-[var(--accent)] font-bold mb-1 block">TANGGAL AKHIR</label><input type="date" id="dashEnd" value="${fEnd}" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"></div>
+               <div><label class="text-xs text-[#58bad7] font-bold mb-1 block">FILTER TOKO</label><select id="dashToko" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua Toko --</option>${optToko}</select></div>
+               <div><label class="text-xs text-[#58bad7] font-bold mb-1 block">FILTER AGENT</label><select id="dashAgen" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua Agent --</option>${optionsHtml(db.setup.ORDER_KE, fAgen)}</select></div>
+               ${picFilterHtml}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div class="card shadow-md"><div class="flex items-center gap-3"><div class="icon-badge" style="background:#e1f3f8"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2.5 8.33L3.33 2.5H16.67L17.5 8.33" stroke="#58bad7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.17 8.33V17.5H15.83V8.33" stroke="#58bad7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.33 17.5V12.5H11.67V17.5" stroke="#58bad7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TOTAL TOKO AKTIF</p><h2 class="text-2xl font-bold mt-0.5 text-[var(--text-main)]">${kpi_tokoAktif}</h2></div></div></div>
+            <div class="card shadow-md"><div class="flex items-center gap-3"><div class="icon-badge" style="background:#e3f9ec"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="#3ac977" stroke-width="1.6"/><circle cx="10" cy="10" r="3.5" stroke="#3ac977" stroke-width="1.6"/><circle cx="10" cy="10" r="0.9" fill="#3ac977"/></svg></div><div><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TARGET KUNJUNGAN/BULAN</p><h2 class="text-2xl font-bold mt-0.5 text-[#3ac977]">${kpi_targetVisited}</h2></div></div></div>
+            <div class="card shadow-md"><div class="flex items-center gap-3"><div class="icon-badge" style="background:#e2f3ff"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10.5L8 14.5L16 5.5" stroke="#0d99ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">REALISASI VISITED</p><h2 class="text-2xl font-bold mt-0.5 text-[var(--accent)]">${kpi_realisasiVisited}</h2></div></div></div>
+            <div class="card shadow-md"><div class="flex items-center gap-3"><div class="icon-badge" style="background:${kpi_persentaseVisited >= 100 ? '#e3f9ec' : '#fff3d6'}"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 13L7.5 8.5L11 12L17 6" stroke="${kpi_persentaseVisited >= 100 ? '#3ac977' : '#ff9f00'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.5 6H17V10.5" stroke="${kpi_persentaseVisited >= 100 ? '#3ac977' : '#ff9f00'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">% PENCAPAIAN VISITED</p><h2 class="text-2xl font-bold mt-0.5 ${kpi_persentaseVisited >= 100 ? 'text-green-600' : 'text-amber-600'}">${kpi_persentaseVisited}%</h2></div></div></div>
+        </div>
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+            <div class="card shadow-md"><div class="flex items-center gap-3"><div class="icon-badge" style="background:#e2f3ff"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M17.5 10C17.5 14.14 14.14 17.5 10 17.5C5.86 17.5 2.5 14.14 2.5 10C2.5 5.86 5.86 2.5 10 2.5" stroke="#0d99ff" stroke-width="1.6" stroke-linecap="round"/><path d="M13.33 3.33L10 10L15.83 8.33" stroke="#0d99ff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TARGET REMOTE/WA</p><h2 class="text-2xl font-bold mt-0.5 text-[#0d99ff]">${kpi_targetRemote}</h2></div></div></div>
+            <div class="card shadow-md"><div class="flex items-center gap-3"><div class="icon-badge" style="background:#e2f3ff"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10.5L8 14.5L16 5.5" stroke="#0d99ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">REALISASI REMOTE/WA</p><h2 class="text-2xl font-bold mt-0.5 text-[#0d99ff]">${kpi_realisasiRemote}</h2></div></div></div>
+            <div class="card shadow-md"><div class="flex items-center gap-3"><div class="icon-badge" style="background:${kpi_persentaseRemote >= 100 ? '#e3f9ec' : '#fff3d6'}"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 13L7.5 8.5L11 12L17 6" stroke="${kpi_persentaseRemote >= 100 ? '#3ac977' : '#ff9f00'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.5 6H17V10.5" stroke="${kpi_persentaseRemote >= 100 ? '#3ac977' : '#ff9f00'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">% PENCAPAIAN REMOTE/WA</p><h2 class="text-2xl font-bold mt-0.5 ${kpi_persentaseRemote >= 100 ? 'text-green-600' : 'text-amber-600'}">${kpi_persentaseRemote}%</h2></div></div></div>
+            <div class="card shadow-md"><div class="flex items-center gap-3"><div class="icon-badge" style="background:#eef0f2"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="6" height="6" rx="1.2" stroke="#5D606F" stroke-width="1.6"/><rect x="11" y="3" width="6" height="6" rx="1.2" stroke="#5D606F" stroke-width="1.6"/><rect x="3" y="11" width="6" height="6" rx="1.2" stroke="#5D606F" stroke-width="1.6"/><rect x="11" y="11" width="6" height="6" rx="1.2" stroke="#5D606F" stroke-width="1.6"/></svg></div><div><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TOTAL REALISASI</p><h2 class="text-2xl font-bold mt-0.5 text-[var(--text-main)]">${kpi_realisasi}</h2><p class="text-[10px] text-[var(--text-muted)] mt-0.5">dari target ${kpi_targetTotal}</p></div></div></div>
+            <div class="card shadow-md"><div class="flex items-center gap-3"><div class="icon-badge" style="background:${kpi_persentaseTotal >= 100 ? '#e3f9ec' : '#fff3d6'}"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 13L7.5 8.5L11 12L17 6" stroke="${kpi_persentaseTotal >= 100 ? '#3ac977' : '#ff9f00'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.5 6H17V10.5" stroke="${kpi_persentaseTotal >= 100 ? '#3ac977' : '#ff9f00'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">% PENCAPAIAN TOTAL</p><h2 class="text-2xl font-bold mt-0.5 ${kpi_persentaseTotal >= 100 ? 'text-green-600' : 'text-amber-600'}">${kpi_persentaseTotal}%</h2></div></div></div>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[var(--accent)]">STATUS KUNJUNGAN</h3><div class="flex-1 relative w-full h-full"><canvas id="chartKunjungan"></canvas></div></div>
+            <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[#58bad7]">KATEGORI KOMPLAIN</h3><div class="flex-1 relative w-full h-full"><canvas id="chartIssue"></canvas></div></div>
+            <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[var(--accent)]">KATEGORI SAMPLING</h3><div class="flex-1 relative w-full h-full"><canvas id="chartSampling"></canvas></div></div>
+            <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-amber-600">KEPATUHAN FOTO (PIC)</h3><div class="flex-1 relative w-full h-full"><canvas id="chartLampiran"></canvas></div></div>
+            <div class="card h-64 flex flex-col lg:col-span-2 shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[#58bad7]">LAPORAN KOMPETITOR</h3><div class="flex-1 relative w-full h-full"><canvas id="chartKompetitor"></canvas></div></div>
+        </div>
+
+        <div class="card mb-8 shadow-md">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-sm">COMMUNICATION LOG — AER THIA</h3>
+            <button onclick="formCommunication()" class="btn btn-primary text-xs">+ Tambah Komunikasi</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table>
+              <thead><tr><th>NO</th><th>NAMA USER</th><th>TANGGAL MASUK</th><th>SUMBER SOSIAL MEDIA</th><th>INTI PEMBICARAAN</th></tr></thead>
+              <tbody>${(db.communication || []).slice().sort((a,b)=>new Date(b.tanggalMasuk)-new Date(a.tanggalMasuk)).slice(0,3).map((x,i)=>`<tr><td>${i+1}</td><td class="font-bold">${x.namaUser||'-'}</td><td>${x.tanggalMasuk||'-'}</td><td>${x.sumberSosialMedia||'-'}</td><td>${x.intiPembicaraan||'-'}</td></tr>`).join('') || '<tr><td colspan="5" class="text-center text-[var(--text-muted)] py-4">Belum ada Communication Log</td></tr>'}</tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="card flex flex-col shadow-md">
+              <h3 class="font-bold text-sm mb-4">AKTIFITAS TERAKHIR</h3>
+              <div class="overflow-x-auto flex-1">
+              <table>
+                <thead><tr><th>NAMA TOKO</th><th>TGL KUNJUNGAN</th><th>AKTIFITAS</th><th>STATUS</th></tr></thead>
+                <tbody>${fAktifitasCombined.length > 0 ? fAktifitasCombined.slice(-5).reverse().map(a => `<tr><td class="font-bold text-[var(--accent)]">${a.namaToko}</td><td>${a.tanggalKunjungan}</td><td><span class="badge" style="background:var(--purple-grad); color:#ffffff">${a.aktifitas}</span></td><td><span class="badge" style="background:#5D606F; color:#fff">${a.status}</span></td></tr>`).join('') : `<tr><td colspan="4" class="text-center text-[var(--text-muted)] py-4">Tidak ada data.</td></tr>`}</tbody>
+              </table>
+              </div>
+            </div>
+
+            <div class="card flex flex-col shadow-md">
+              <h3 class="font-bold text-sm mb-4">UPCOMING VISIT (SCHEDULED)</h3>
+              <div class="overflow-x-auto flex-1">
+              <table>
+                <thead><tr><th>NAMA TOKO</th><th>TUJUAN KUNJUNGAN</th><th>PLAN DATE</th><th>PRIORITY</th></tr></thead>
+                <tbody>
+                  ${upcomingPlan.length > 0 ? upcomingPlan.slice(0, 5).map(p => `<tr>
+                    <td class="font-bold text-[#3ac977]">${p.namaToko}</td>
+                    <td>${p.tujuanKunjungan}</td>
+                    <td>${p.planDate}</td>
+                    <td><span class="badge" style="background:${p.priority==='High'?'var(--danger)':'#ff9f00'}; color:#ffffff">${p.priority}</span></td>
+                  </tr>`).join('') : `<tr><td colspan="4" class="text-center text-[var(--text-muted)] py-4">Tidak ada jadwal terdekat.</td></tr>`}
+                </tbody>
+              </table>
+              </div>
+            </div>
+        </div>
+
+        <div class="card flex flex-col shadow-md mt-6">
+            <h3 class="font-bold text-sm mb-4 text-[#58bad7]">LAPORAN KOMPETITOR TERBARU (5 Terakhir)</h3>
+            <div class="overflow-x-auto">
+            <table>
+                <thead><tr><th>TANGGAL</th><th>NAMA TOKO</th><th>PIC</th><th>KOMPETITOR</th><th>KETERANGAN DETAIL</th></tr></thead>
+                <tbody>
+                  ${fIntelCombined.length > 0 ? fIntelCombined.slice(-5).reverse().map(i => `<tr>
+                    <td>${i.date}</td>
+                    <td class="font-bold text-[var(--accent)]">${i.namaToko}</td>
+                    <td class="font-bold text-[#3ac977]">${i.pic || '-'}</td>
+                    <td class="text-[#0d99ff] font-bold">${i.kompetitor || '-'}</td>
+                    <td class="text-xs whitespace-normal max-w-xs break-words">${i.keteranganDetail || '-'}</td>
+                  </tr>`).join('') : `<tr><td colspan="5" class="text-center text-[var(--text-muted)] py-4">Belum ada laporan intelejen.</td></tr>`}
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <div class="card flex flex-col shadow-md mt-6">
+            <h3 class="font-bold text-sm mb-4 text-[#0d99ff]">TAB KELUHAN & NEXT ACTION</h3>
+            <div class="overflow-x-auto">
+            <table>
+                <thead><tr><th>NAMA TOKO</th><th>TANGGAL</th><th>KATEGORI</th><th>PENJELASAN KELUHAN</th><th>NEXT ACTION</th></tr></thead>
+                <tbody>
+                  ${actionTableData.length > 0 ? actionTableData.map(a => `<tr>
+                    <td class="font-bold text-[#3ac977]">${a.namaToko}</td>
+                    <td>${a.tanggalKunjungan}</td>
+                    <td class="text-[var(--danger)] font-bold">${a.keluhanFeedback || '-'}</td>
+                    <td class="text-xs whitespace-normal max-w-xs">${a.keterangan || '-'}</td>
+                    <td class="text-xs whitespace-normal max-w-xs text-amber-700">${isManager ? `<input type="text" class="input-field text-xs mt-0" style="min-width:180px" value="${htmlEscapeAttr(a.nextAction)}" placeholder="Isi next action..." onchange="updateNextAction('${a.id}', this.value); this.style.borderColor='#3ac977'; setTimeout(()=>{this.style.borderColor='';}, 800);">` : (a.nextAction || '-')}</td>
+                  </tr>`).join('') : `<tr><td colspan="5" class="text-center text-[var(--text-muted)] py-4">Tidak ada keluhan dengan aksi tercatat.</td></tr>`}
+                </tbody>
+            </table>
+            </div>
+        </div>
+      `;
+
+      if (!window.myCharts) window.myCharts = {};
+      ['chartKunjungan', 'chartLampiran', 'chartIssue', 'chartSampling', 'chartKompetitor'].forEach(id => { if(window.myCharts[id]) window.myCharts[id].destroy(); });
+
+      setTimeout(() => {
+        let optG = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#888888', font: { size: 10, family: 'Poppins' }, usePointStyle: true, boxWidth: 8, padding: 14 } } } };
+        let optBar = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { color: '#888888', font: { family: 'Poppins', size: 10 } } }, y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { color: '#888888', font: { family: 'Poppins', size: 10 } } } } };
+
+        if(document.getElementById('chartKunjungan')) window.myCharts['chartKunjungan'] = new Chart(document.getElementById('chartKunjungan'), { type: 'doughnut', data: { labels: ['Visited', 'Contacted', 'Scheduled', 'Overdue', 'Cancelled'], datasets: [{ data: [c_visited, c_contacted, c_scheduled, c_overdue, c_cancelled], backgroundColor: ['#0d99ff', '#3ac977', '#58bad7', '#ff5e5e', '#9a9a9a'], borderWidth: 3, borderColor: '#ffffff', hoverOffset: 6 }] }, options: { ...optG, cutout: '70%' } });
+        if(document.getElementById('chartLampiran')) window.myCharts['chartLampiran'] = new Chart(document.getElementById('chartLampiran'), { type: 'bar', data: { labels: picLampiranLabels, datasets: [ { label: 'Melampirkan', data: picLampiranLabels.map(p => lampiranByPIC[p]['Melampirkan']), backgroundColor: '#3ac977', borderRadius: 6, maxBarThickness: 28 }, { label: 'Tidak Melampirkan', data: picLampiranLabels.map(p => lampiranByPIC[p]['Tidak Melampirkan']), backgroundColor: '#ff5e5e', borderRadius: 6, maxBarThickness: 28 } ] }, options: { ...optBar, scales: { x: { ...optBar.scales.x, stacked: true }, y: { ...optBar.scales.y, stacked: true } }, plugins: { legend: { position: 'bottom', labels: { color: '#888888', font: { size: 10, family: 'Poppins' }, usePointStyle: true, boxWidth: 8 } } } } });
+        if(document.getElementById('chartIssue')) window.myCharts['chartIssue'] = new Chart(document.getElementById('chartIssue'), { type: 'pie', data: { labels: Object.keys(issueData).length ? Object.keys(issueData) : ['Aman'], datasets: [{ data: Object.keys(issueData).length ? Object.values(issueData) : [1], backgroundColor: ['#3ac977', '#58bad7', '#0d99ff', '#3aacff'], borderWidth: 3, borderColor: '#ffffff', hoverOffset: 6 }] }, options: optG });
+        if(document.getElementById('chartSampling')) window.myCharts['chartSampling'] = new Chart(document.getElementById('chartSampling'), { type: 'polarArea', data: { labels: Object.keys(samplingData).length ? Object.keys(samplingData) : ['N/A'], datasets: [{ data: Object.keys(samplingData).length ? Object.values(samplingData) : [1], backgroundColor: ['rgba(13, 153, 255, 0.75)', 'rgba(88, 186, 215, 0.75)', 'rgba(58, 201, 119, 0.75)'], borderWidth: 2, borderColor: '#ffffff' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { display: false } } } });
+        if(document.getElementById('chartKompetitor')) window.myCharts['chartKompetitor'] = new Chart(document.getElementById('chartKompetitor'), { type: 'bar', data: { labels: Object.keys(compData).length ? Object.keys(compData) : ['Belum Ada'], datasets: [{ label: 'Laporan', data: Object.keys(compData).length ? Object.values(compData) : [0], backgroundColor: '#58bad7', borderRadius: 6, maxBarThickness: 32 }] }, options: optBar });
+      }, 50);
+    }
+
+    function renderSetup(c) {
+      let html = `<div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Setup Master Data</h1>
+        <button onclick="addMasterCategory()" class="btn btn-warning text-black shadow-lg">+ Tambah Kategori Tabel Master</button>
+      </div>`;
+
+      if (isManager) {
+        let vMap = getSalesTargetMap('VISITED');
+        let rMap = getSalesTargetMap('REMOTE');
+        let picList = db.setup.PIC || [];
+        html += `<div class="card mb-6 border-t-4 border-[#3ac977] shadow-md">
+          <h3 class="font-bold text-[#3ac977] text-lg mb-1">🎯 Target Bulanan</h3>
+          <form onsubmit="saveTargetForm(event)">
+            <table class="mb-4"><thead><tr><th>SALES (PIC)</th><th>TARGET VISITED / BULAN</th><th>TARGET REMOTE/WA / BULAN</th></tr></thead>
+            <tbody>
+              ${picList.map(pic => `<tr>
+                <td class="font-bold text-[var(--accent)]">${pic}</td>
+                <td><input type="number" min="0" class="input-field" name="visited_${pic}" value="${vMap[pic] || 0}"></td>
+                <td><input type="number" min="0" class="input-field" name="remote_${pic}" value="${rMap[pic] || 0}"></td>
+              </tr>`).join('')}
+            </tbody></table>
+            <button type="submit" class="btn btn-primary">💾 Simpan Target</button>
+          </form>
+        </div>`;
+      }
+
+      html += `<div class="grid grid-cols-2 lg:grid-cols-3 gap-6">`;
+
+      for(let key in db.setup) {
+        if (key === 'TARGET_VISITED' || key === 'TARGET_REMOTE') continue; 
+        let displayKey = key.replace(/_/g, ' ');
+        html += `<div class="card flex flex-col h-full"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-[var(--accent)] text-lg">${displayKey}</h3><button onclick="addSetup('${key}')" class="text-xs btn-primary px-3 py-1 rounded shadow">+ Add</button></div><ul class="text-sm flex-1 overflow-y-auto max-h-60 pr-2">`;
+        if (!db.setup[key] || db.setup[key].length === 0) { html += `<li class="text-[var(--text-muted)] italic">Belum ada data</li>`; }
+        else { db.setup[key].forEach((item, index) => { html += `<li class="flex justify-between items-center border-b border-[var(--border)] py-2 group"><span class="truncate pr-2">${item}</span><button onclick="delSetup('${key}', ${index})" class="text-[var(--danger)] text-xs font-bold px-2 py-1 bg-red-50 rounded">Hapus</button></li>`; }); }
+        html += `</ul></div>`;
+      }
+      c.innerHTML = html + `</div>`;
+    }
+
+    function saveTargetForm(e) {
+      e.preventDefault();
+      let fd = new FormData(e.target);
+      let vMap = {}; let rMap = {};
+      let picList = db.setup.PIC || [];
+      picList.forEach(pic => {
+        vMap[pic] = parseInt(fd.get(`visited_${pic}`), 10) || 0;
+        rMap[pic] = parseInt(fd.get(`remote_${pic}`), 10) || 0;
+      });
+      saveSalesTargetMap('VISITED', vMap);
+      saveSalesTargetMap('REMOTE', rMap);
+      alert('Target bulanan berhasil disimpan.');
+      renderPage('setup');
+    }
+
+    window.addMasterCategory = function() {
+        let catName = prompt("Masukkan Nama Kategori Tabel Baru (cth: AREA_PENGIRIMAN):");
+        if(catName && catName.trim() !== '') {
+            let safeKey = catName.toUpperCase().replace(/\s+/g, '_');
+            if(!db.setup[safeKey]) { db.setup[safeKey] = []; setDB('db_setup', db.setup); renderPage('setup'); }
+            else { alert("Kategori tersebut sudah ada di sistem."); }
+        }
+    }
+    
+    function addSetup(key) { openModal(`<h2 class="text-xl font-bold mb-4">Tambah Master Data: ${key.replace(/_/g, ' ')}</h2><input type="text" id="setupVal" class="input-field mb-4" placeholder="Masukkan pilihan baru..."><div class="flex gap-2"><button onclick="closeModal()" class="btn btn-secondary">Batal</button><button onclick="saveSetup('${key}')" class="btn btn-primary">Simpan</button></div>`); }
+    function saveSetup(key) { let val = document.getElementById('setupVal').value; if(val) { autoAddSetup(key, val); closeModal(); renderPage('setup'); } }
+    function delSetup(key, idx) { if(confirm('Hapus item pilihan ini?')) { db.setup[key].splice(idx, 1); setDB('db_setup', db.setup); renderPage('setup'); } }
+
+    function renderDaftarToko(c) {
+      let filteredToko = isManager ? db.toko : db.toko.filter(t => samePic(t.pic, myPIC));
+
+      let rows = filteredToko.map(t => {
+        let statusColor = (t.status === 'Inactive' || t.status === 'Non Aktif (Nomer Tidak dapat dihubungi)') ? 'var(--danger)' : 
+                          (t.status === 'Active') ? '#3ac977' : 
+                          (t.status === 'Prospect') ? '#ff9f00' : 'var(--accent)';
+        let actBtns = isManager ? `<button onclick="formToko('${t.contactId}')" class="text-xs text-[#58bad7] hover:underline font-bold mr-2">Edit</button><button onclick="delToko('${t.contactId}')" class="text-xs text-[var(--danger)] hover:underline font-bold">Del</button>` : `<span class="text-[10px] text-gray-500">Read Only</span>`;
+        return `<tr>
+          <td class="text-xs text-[var(--text-muted)]">${t.contactId}</td>
+          <td class="font-bold text-[var(--accent)]">${t.namaToko}</td>
+          <td>${t.contactPerson}</td>
+          <td class="text-xs">${t.jobTitle || '-'}</td>
+          <td>${t.phone || '-'}</td>
+          <td>${t.orderKe}</td>
+          <td><span class="badge" style="background:${statusColor}; color:#ffffff">${t.status}</span></td>
+          <td class="text-xs">${t.jenisKunjungan}</td>
+          <td>${t.pic}</td>
+          <td class="font-bold text-[#3ac977]">${t.targetKunjungan || '-'}</td>
+          <td>${t.lastVisit || '-'}</td>
+          <td class="text-xs">${t.kodeKontak}</td>
+          <td>${actBtns}</td>
+        </tr>`;
+      }).join('');
+      
+      let uploadBtn = isManager ? `<label class="btn btn-warning text-black cursor-pointer mr-2">📤 Import Data (Excel)<input type="file" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleImportExcel(event)"></label>` : '';
+
+      c.innerHTML = `
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-3xl font-bold">Daftar Toko</h1>
+          <div>${uploadBtn}<button onclick="formToko()" class="btn btn-primary">+ Add Toko Baru</button></div>
+        </div>
+        <div class="card table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>CONTACT ID</th><th>NAMA TOKO</th><th>CONTACT PERSON</th><th>JOB TITLE</th>
+                <th>PHONE</th><th>ORDER KE</th><th>STATUS</th><th>JENIS KUNJUNGAN</th>
+                <th>PIC</th><th>TARGET KUNJUNGAN</th><th>LAST VISIT</th><th>KODE KONTAK</th><th>ACT</th>
+              </tr>
+            </thead>
+            <tbody>${rows.length > 0 ? rows : `<tr><td colspan="13" class="text-center text-[var(--text-muted)] py-4">Data toko kosong atau bukan hak akses anda.</td></tr>`}</tbody>
+          </table>
+        </div>`;
+    }
+
+    function formToko(editId = null) {
+      let t = editId ? db.toko.find(x => x.contactId === editId) : null;
+      let picSelectHtml = isManager ? 
+            `<select name="pic" class="input-field">${optionsHtml(db.setup.PIC, t?.pic)}</select>` : 
+            `<input name="pic" class="input-field text-gray-500" value="${myPIC}" readonly>`;
+
+      openModal(`
+        <h2 class="text-xl font-bold mb-4 text-[var(--accent)]">${t ? 'Edit Data Toko' : 'Form Tambah Daftar Toko'}</h2>
+        <form onsubmit="saveToko(event, ${t ? true : false})">
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div><label class="text-xs">CONTACT ID *</label><input required name="contactId" class="input-field" value="${t?.contactId||''}" ${t ? 'readonly' : ''}></div>
+            <div><label class="text-xs">NAMA TOKO *</label><input required name="namaToko" class="input-field" value="${t?.namaToko||''}"></div>
+            <div><label class="text-xs">CONTACT PERSON</label><input name="contactPerson" class="input-field" value="${t?.contactPerson||''}"></div>
+            <div><label class="text-xs">JOB TITLE</label><input name="jobTitle" class="input-field" value="${t?.jobTitle||''}"></div>
+            <div><label class="text-xs">PHONE</label><input name="phone" class="input-field" value="${t?.phone||''}"></div>
+            <div><label class="text-xs">LOCATION</label><input name="location" class="input-field" value="${t?.location||''}"></div>
+            <div><label class="text-xs text-[#58bad7] font-bold">ORDER KE</label>
+                 ${isManager ? `<select name="orderKe" class="input-field border-[var(--accent)]" required><option value="">Pilih Order Ke...</option>${optionsHtml(db.setup.ORDER_KE, t?.orderKe)}</select>` : `<input name="orderKe" class="input-field" value="${t?.orderKe||''}" readonly>`}
+            </div>
+            <div><label class="text-xs text-[#58bad7] font-bold">STATUS TOKO</label><select name="status" class="input-field" required><option value="">Pilih Status...</option>${optionsHtml(db.setup.STATUS_TOKO, t?.status)}</select></div>
+            <div><label class="text-xs text-[var(--text-muted)]">JENIS KUNJUNGAN</label><select name="jenisKunjungan" class="input-field">${optionsHtml(db.setup.JENIS_KUNJUNGAN, t?.jenisKunjungan)}</select></div>
+            <div><label class="text-xs text-[var(--text-muted)]">PIC</label>
+                 ${picSelectHtml}
+            </div>
+            <div><label class="text-xs font-bold text-[#3ac977]">TARGET KUNJUNGAN</label>
+              <select name="targetKunjungan" class="input-field">${optionsHtml(db.setup.TARGET_KUNJUNGAN_OPTIONS || ['1 x Sebulan','2 x Sebulan'], t?.targetKunjungan)}</select>
+            </div>
+            <div><label class="text-xs">MAPS LINK</label><input name="mapsLink" class="input-field" value="${t?.mapsLink||''}" placeholder="https://maps.app.goo.gl/..."></div>
+          </div>
+          <div class="flex gap-2 pt-2 border-t border-[var(--border)]"><button type="button" onclick="closeModal()" class="btn btn-secondary">Batal</button><button type="submit" class="btn btn-primary flex-1">Simpan Toko</button></div>
+        </form>
+      `);
+    }
+
+    function saveToko(e, isEdit) {
+      e.preventDefault(); 
+      let obj = Object.fromEntries(new FormData(e.target));
+      obj.kodeKontak = `[${obj.contactId}] ${obj.contactPerson}`;
+      if(isEdit) { let idx = db.toko.findIndex(x => x.contactId === obj.contactId); obj.lastVisit = db.toko[idx].lastVisit; db.toko[idx] = obj; } 
+      else { obj.lastVisit = ''; db.toko.push(obj); }
+      setDB('db_toko', db.toko); closeModal(); renderPage('daftartoko');
+    }
+
+    function renderVisitPlan(c) {
+      let vpLabel = window.currentUserRole === 'AER Thia' ? 'Contact Plan' : 'Visit Plan';
+      
+      let fPIC = isManager ? window.vpFilters.pic : myPIC;
+
+      let filteredPlans = db.plan.filter(p => {
+          if (p.status === 'Visited' || p.status === 'Contacted' || p.status === 'Recreated') return false;
+          if (fPIC && !samePic(p.pic, fPIC)) return false;
+          return true;
+      });
+
+      let rows = filteredPlans.map(p => {
+        let badgeColor = (p.status==='Overdue' ? 'var(--danger)' : (p.status==='Recreate Pending' ? '#8b5cf6' : (p.status==='Cancelled' ? '#9a9a9a' : '#ff9f00')));
+        let txtColor = (p.status==='Scheduled') ? '#ffffff' : '#fff';
+        
+        let actionBtn = isManager ? `<button onclick="delPlan('${p.id}')" class="text-xs text-[var(--text-muted)] hover:text-[var(--accent)] font-bold ml-2">Del</button>` : '';
+        if(p.status === 'Overdue') {
+            actionBtn = `<button data-id="${p.id}" data-toko="${p.kontakToko}" data-nama="${p.namaToko}" data-pic="${p.pic}" data-ket="${p.keterangan || ''}" onclick="recreatePlan(this)" class="btn btn-warning text-[10px] px-2 py-1 mr-2">⚠️ Ajukan Recreate</button>` + actionBtn;
+        }
+        if(p.status === 'Recreate Pending' && isManager) {
+            actionBtn = `<button onclick="approveRecreate('${p.id}', true)" class="btn btn-primary text-[10px] px-2 py-1 mr-1">✓ Confirm</button><button onclick="approveRecreate('${p.id}', false)" class="btn btn-danger text-[10px] px-2 py-1">✕ Decline</button>` + actionBtn;
+        }
+
+        let tData = findTokoByKontak(p.kontakToko);
+        let statTokoAsli = tData ? tData.status : 'Unknown';
+
+        return `<tr>
+          <td class="text-xs text-[var(--text-muted)]">${p.kontakToko}</td>
+          <td class="font-bold text-[#3ac977]">${p.namaToko}</td>
+          <td><span class="badge border border-gray-300 text-gray-600 bg-transparent">${statTokoAsli}</span></td>
+          <td>${p.tujuanKunjungan}</td>
+          <td>${p.pic}</td>
+          <td>${p.planDate}</td>
+          <td>${p.actualDate||'-'}</td>
+          <td><span class="badge" style="background:${p.priority==='High'?'var(--danger)':p.priority==='Medium'?'#ff9f00':'#9a9a9a'}; color:#ffffff">${p.priority}</span></td>
+          <td><span class="badge" style="background:${badgeColor}; color:${txtColor}">${p.status}</span></td>
+          <td class="text-xs max-w-xs truncate" title="${p.keterangan}">${p.keterangan}</td>
+          <td class="font-bold">${p.daysUntilDue}</td>
+          <td>${actionBtn}</td>
+        </tr>`;
+      }).join('');
+      
+      let picFilterHtml = isManager ? `
+        <select id="vpPICFilter" class="input-field mt-0 w-40 text-sm" onchange="window.vpFilters.pic = this.value; renderVisitPlan(document.getElementById('app-content'))">
+            <option value="">-- Semua PIC --</option>
+            ${optionsHtml(db.setup.PIC, fPIC)}
+        </select>
+      ` : '';
+
+      c.innerHTML = `
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-3xl font-bold">${vpLabel}</h1>
+          <div class="flex gap-2">
+            ${picFilterHtml}
+            <button onclick="downloadVisitHistory()" class="btn btn-warning text-black shadow-md text-sm">📥 Download History</button>
+            <button onclick="formPlan()" class="btn btn-primary text-sm">+ Create ${vpLabel}</button>
+          </div>
+        </div>
+        <div class="card table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>KONTAK TOKO</th><th>NAMA TOKO</th><th>STATUS TOKO</th><th>TUJUAN KUNJUNGAN</th>
+                <th>PIC</th><th>PLAN DATE</th><th>ACTUAL DATE</th><th>PRIORITY</th>
+                <th>STATUS PLAN</th><th>KETERANGAN</th><th>DAYS DUE</th><th>ACTION</th>
+              </tr>
+            </thead>
+            <tbody>${rows.length > 0 ? rows : `<tr><td colspan="12" class="text-center text-[var(--text-muted)] py-4">Semua plan berstatus Selesai (Sembunyi) atau Kosong. Download history untuk melihat.</td></tr>`}</tbody>
+          </table>
+        </div>`;
+    }
+
+    window.downloadVisitHistory = function() {
+        let fPIC = isManager ? '' : myPIC;
+        let history = db.plan.filter(p => (p.status === 'Visited' || p.status === 'Contacted') && (!fPIC || samePic(p.pic, fPIC)));
+        if (history.length === 0) { alert('Belum ada data history kunjungan/contacted untuk area Anda.'); return; }
+        
+        let csvContent = "data:text/csv;charset=utf-8,ID Plan,Kontak Toko,Nama Toko,Tujuan,PIC,Plan Date,Actual Date,Status,Keterangan\n";
+        history.forEach(p => {
+            let safeKet = p.keterangan ? p.keterangan.replace(/"/g, '""') : '';
+            let row = `${p.id},"${p.kontakToko}","${p.namaToko}","${p.tujuanKunjungan}",${p.pic},${p.planDate},${p.actualDate},${p.status},"${safeKet}"`;
+            csvContent += row + "\n";
+        });
+        
+        let encodedUri = encodeURI(csvContent);
+        let link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "history_visit_plan.csv");
+        document.body.appendChild(link);
+        link.click();
+    }
+
+    window.filterTokoSelect = function(val) {
+        let filter = val.toLowerCase();
+        let select = document.getElementById('selectTokoPlan');
+        let html = '<option value="">Pilih Toko Master...</option>';
+        
+        db.toko.forEach(t => {
+            if (!isManager && !samePic(t.pic, myPIC)) return; 
+            let text = t.kodeKontak + ' - ' + t.namaToko;
+            if(text.toLowerCase().includes(filter)) {
+                html += `<option value="${t.kodeKontak}" data-nama="${t.namaToko}">${text}</option>`;
+            }
+        });
+        select.innerHTML = html;
+    }
+
+    function formPlan(preToko = '', preNama = '', prePic = '', preKeterangan = '', oldPlanId = '') {
+      let vpLabel = window.currentUserRole === 'AER Thia' ? 'Contact Plan' : 'Visit Plan';
+      
+      let filteredTokoForPlan = isManager ? db.toko : db.toko.filter(t => samePic(t.pic, myPIC));
+      let tokoOptions = filteredTokoForPlan.map(t => `<option value="${t.kodeKontak}" data-nama="${t.namaToko}" ${t.kodeKontak === preToko ? 'selected':''}>${t.kodeKontak} - ${t.namaToko}</option>`).join('');
+      
+      let picInputHtml = isManager ? 
+            `<select name="pic" class="input-field">${optionsHtml(db.setup.PIC, prePic)}</select>` : 
+            `<input name="pic" class="input-field text-gray-500" value="${myPIC}" readonly>`;
+
+      openModal(`
+        <h2 class="text-xl font-bold mb-4 text-[#58bad7]">${preToko ? '⚠️ Ajukan Recreate ' + vpLabel : 'Form Rencana Kunjungan'}</h2>
+        <form onsubmit="savePlan(event)">
+          <input type="hidden" name="oldPlanId" value="${oldPlanId}">
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="col-span-2">
+              <label class="text-xs text-[var(--text-muted)]">PILIH TOKO * (Ketik untuk mencari master)</label>
+              <input type="text" class="input-field border-[var(--accent)] mb-1" placeholder="🔍 Cari Nama Toko / Kontak ID..." oninput="filterTokoSelect(this.value)">
+              <select required id="selectTokoPlan" name="kontakToko" class="input-field border-[#58bad7]" onchange="document.getElementById('vpNama').value = this.options[this.selectedIndex].dataset.nama || ''">
+                <option value="">Pilih Toko Master...</option>${tokoOptions}
+              </select>
+              <input type="hidden" name="namaToko" id="vpNama" value="${preNama}">
+            </div>
+            <div><label class="text-xs text-[var(--text-muted)]">TUJUAN KUNJUNGAN</label><select name="tujuanKunjungan" class="input-field">${optionsHtml(db.setup.AKTIFITAS)}</select></div>
+            <div><label class="text-xs text-[var(--text-muted)]">PIC JADWAL</label>
+                 ${picInputHtml}
+            </div>
+            <div><label class="text-xs">NEW PLAN DATE *</label><input required type="date" name="planDate" class="input-field border-[var(--accent)]"></div>
+            <div><label class="text-xs">PRIORITY</label><select name="priority" class="input-field"><option>High</option><option>Medium</option><option>Low</option></select></div>
+            <div class="col-span-2"><label class="text-xs">KETERANGAN</label>
+              <input name="keterangan" class="input-field" value="${preKeterangan || ''}">
+            </div>
+          </div>
+          <div class="flex gap-2 pt-2 border-t border-[var(--border)]"><button type="button" onclick="closeModal()" class="btn btn-secondary">Batal</button><button type="submit" class="btn btn-primary flex-1">Simpan Rencana Visit</button></div>
+        </form>
+      `);
+    }
+
+    window.recreatePlan = function(btn) { 
+        formPlan(btn.dataset.toko, btn.dataset.nama, btn.dataset.pic, btn.dataset.ket, btn.dataset.id); 
+    }
+
+    function savePlan(e) {
+      e.preventDefault();
+      let obj = Object.fromEntries(new FormData(e.target));
+      let oldPlanId = obj.oldPlanId;
+      delete obj.oldPlanId;
+      obj.id = generateId('VP');
+      obj.actualDate = '';
+      let diff = Math.ceil((new Date(obj.planDate) - new Date(todayStr)) / (1000 * 60 * 60 * 24));
+      obj.daysUntilDue = diff;
+      obj.sourcePlanId = oldPlanId || '';
+      obj.requestedBy = loggedInRole;
+      obj.requestedAt = new Date().toISOString();
+      obj.approvedBy = '';
+      obj.approvedAt = '';
+      obj.decisionNote = '';
+
+      if (oldPlanId) {
+        // Overdue lama TETAP dipertahankan. Recreate menjadi record baru.
+        obj.status = 'Recreate Pending';
+        obj.keterangan = (obj.keterangan || '') + ' | Menunggu konfirmasi Sales Manager';
+      } else {
+        obj.status = obj.planDate < todayStr ? 'Overdue' : 'Scheduled';
+      }
+
+      db.plan.push(obj);
+      setDB('db_plan', db.plan);
+      closeModal();
+      renderPage('visitplan');
+      alert(oldPlanId ? 'Pengajuan recreate berhasil dikirim ke Sales Manager.' : 'Rencana Visit berhasil disimpan.');
+    }
+
+    window.approveRecreate = function(planId, approved) {
+      if (!isManager) return;
+      const idx = db.plan.findIndex(p => p.id === planId);
+      if (idx < 0) return;
+      const p = db.plan[idx];
+      p.approvedBy = loggedInRole;
+      p.approvedAt = new Date().toISOString();
+      if (approved) {
+        p.status = p.planDate < todayStr ? 'Overdue' : 'Scheduled';
+        p.keterangan = (p.keterangan || '').replace(' | Menunggu konfirmasi Sales Manager', '') + ' | Recreate dikonfirmasi Sales Manager';
+      } else {
+        p.status = 'Cancelled';
+        p.decisionNote = 'Pengajuan recreate ditolak oleh Sales Manager';
+      }
+      setDB('db_plan', db.plan);
+      renderPage('visitplan');
+    }
+
+    window.formCommunication = function() {
+      const normalizedRole = String(loggedInRole || '').trim().toLowerCase();
+      const canAccessCommunication =
+        normalizedRole === 'aer thia' ||
+        normalizedRole === 'sales manager';
+
+      if (!canAccessCommunication) {
+        alert('Anda tidak memiliki akses ke Communication Log.');
+        return;
+      }
+
+      openModal(`
+        <h2 class="text-xl font-bold mb-4 text-[#58bad7]">
+          Tambah Communication Log
+        </h2>
+
+        <form onsubmit="saveCommunication(event)">
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="text-xs">NAMA USER *</label>
+              <input required name="namaUser" class="input-field">
+            </div>
+
+            <div>
+              <label class="text-xs">TANGGAL MASUK *</label>
+              <input required type="date" name="tanggalMasuk" class="input-field">
+            </div>
+
+            <div>
+              <label class="text-xs">SUMBER SOSIAL MEDIA / WEBSITE *</label>
+              <select required name="sumberSosialMedia" class="input-field">
+                <option value="">Pilih Sumber</option>
+                <option value="Instagram">Instagram</option>
+                <option value="Facebook">Facebook</option>
+                <option value="TikTok">TikTok</option>
+                <option value="Website">Website</option>
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="Lainnya">Lainnya</option>
+              </select>
+            </div>
+
+            <div class="col-span-2">
+              <label class="text-xs">INTI PEMBICARAAN *</label>
+              <textarea required name="intiPembicaraan" class="input-field" rows="4"></textarea>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3">
+            <button type="button" onclick="closeModal()" class="btn btn-secondary">
+              Batal
+            </button>
+            <button type="submit" class="btn btn-primary">
+              Simpan
+            </button>
+          </div>
+        </form>
+      `);
+    };
+
+    window.saveCommunication = function(e) {
+      e.preventDefault();
+
+      const normalizedRole = String(loggedInRole || '').trim().toLowerCase();
+      const canAccessCommunication =
+        normalizedRole === 'aer thia' ||
+        normalizedRole === 'sales manager';
+
+      if (!canAccessCommunication) {
+        alert('Anda tidak memiliki akses untuk menambahkan Communication Log.');
+        return;
+      }
+
+      const obj = Object.fromEntries(new FormData(e.target));
+      obj.id = generateId('COM');
+
+      if (!db.communication) {
+        db.communication = [];
+      }
+
+      db.communication.push(obj);
+      setDB('db_communication', db.communication);
+      closeModal();
+      renderPage(window.currentPage === 'communication' ? 'communication' : 'dashboard');
+    };
+
+    function renderCommunication(c) {
+      const normalizedRole = String(loggedInRole || '').trim().toLowerCase();
+      const canAccessCommunication =
+        normalizedRole === 'aer thia' ||
+        normalizedRole === 'sales manager';
+
+      if (!canAccessCommunication) {
+        c.innerHTML = `
+          <div class="card p-8 text-center">
+            <h2 class="text-xl font-bold">Akses Ditolak</h2>
+            <p class="text-sm text-[var(--text-muted)] mt-2">
+              Anda tidak memiliki akses ke Communication Log.
+            </p>
+          </div>`;
+        return;
+      }
+
+      const rows = (db.communication || [])
+        .slice()
+        .sort((a, b) => new Date(b.tanggalMasuk) - new Date(a.tanggalMasuk));
+
+      c.innerHTML = `
+        <div class="flex justify-between items-center mb-6">
+          <div>
+            <h1 class="text-3xl font-bold">Communication Log</h1>
+            <p class="text-sm text-[var(--text-muted)] mt-1">
+              Pencatatan komunikasi dari sosial media dan website.
+            </p>
+          </div>
+          <button onclick="formCommunication()" class="btn btn-primary">
+            + Tambah Komunikasi
+          </button>
+        </div>
+
+        <div class="card table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>NO</th>
+                <th>NAMA USER</th>
+                <th>TANGGAL MASUK</th>
+                <th>SUMBER</th>
+                <th>INTI PEMBICARAAN</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${
+                rows.map((x, i) => `
+                  <tr>
+                    <td>${i + 1}</td>
+                    <td class="font-bold">${x.namaUser || '-'}</td>
+                    <td>${x.tanggalMasuk || '-'}</td>
+                    <td>${x.sumberSosialMedia || x.sumber || '-'}</td>
+                    <td>${x.intiPembicaraan || '-'}</td>
+                  </tr>
+                `).join('')
+                ||
+                `<tr>
+                  <td colspan="5" class="text-center text-[var(--text-muted)] py-6">
+                    Belum ada Communication Log
+                  </td>
+                </tr>`
+              }
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    function renderAktifitas(c) {
+      let fJenis = window.actFilters.jenis;
+
+      let filteredAktifitas = db.aktifitas.filter(a => {
+          if (fJenis && a.jenisKunjungan !== fJenis) return false;
+          
+          if (!isManager) {
+              let tData = findTokoByKontak(a.kontakToko);
+              if (!tData || !samePic(tData.pic, myPIC)) return false;
+          }
+          return true;
+      });
+
+      let rows = filteredAktifitas.map(a => {
+        let statusFoto = (a.linkTersedia === 'Melampirkan' || a.linkTersedia === 'Tidak Melampirkan' || a.linkTersedia === 'Tidak Wajib')
+          ? a.linkTersedia
+          : ((a.linkFoto && a.linkFoto.trim() !== '') ? 'Melampirkan' : 'Tidak Melampirkan');
+          
+        let picAkt = a.pic || (findTokoByKontak(a.kontakToko) || {}).pic || '-';
+        
+        return `<tr>
+        <td class="text-xs">${a.kontakToko}</td>
+        <td class="font-bold text-[var(--accent)]">${a.namaToko}</td>
+        <td>${a.tanggalKunjungan}</td>
+        <td class="font-bold text-[#3ac977]">${picAkt}</td>
+        <td class="text-xs">${a.orderKe || '-'}</td>
+        <td class="text-xs">${a.jenisKunjungan || '-'}</td>
+        <td><span class="badge" style="background:var(--purple-grad); color:#ffffff">${a.aktifitas}</span></td>
+        <td class="text-xs">${a.kategoriSampling || '-'}</td>
+        <td class="text-xs">${a.sampleDescription || '-'}</td>
+        <td class="text-xs">${a.size || '-'}</td>
+        <td class="text-[var(--danger)] font-bold">${a.keluhanFeedback || '-'}</td>
+        <td><a href="${a.linkFoto}" target="_blank" class="text-blue-600 underline text-xs">${a.linkFoto ? 'Lihat Foto' : '[KOSONG]'}</a></td>
+        <td><span class="badge ${statusFoto === 'Melampirkan' ? 'bg-green-500' : (statusFoto === 'Tidak Wajib' ? 'bg-gray-500' : 'bg-red-500')} text-white">${statusFoto}</span></td>
+        <td class="text-xs max-w-xs truncate" title="${a.keterangan}">${a.keterangan}</td>
+        <td><span class="badge" style="background:#5D606F; color:#fff">${a.status}</span></td>
+        <td>${isManager ? `<button onclick="delAktifitas('${a.id}')" class="text-xs text-[var(--danger)] font-bold">Del</button>` : ''}</td>
+      </tr>`;
+      }).join('');
+      
+      c.innerHTML = `
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-3xl font-bold">Aktifitas</h1>
+          <div class="flex gap-2">
+            <select class="input-field mt-0 w-48 text-sm" onchange="window.actFilters.jenis = this.value; renderAktifitas(document.getElementById('app-content'))">
+                <option value="">-- Semua Jenis Kunjungan --</option>
+                ${optionsHtml(db.setup.JENIS_KUNJUNGAN, fJenis)}
+            </select>
+            <button onclick="formAktifitas()" class="btn btn-primary">+ Lapor Aktifitas Visit</button>
+          </div>
+        </div>
+        <div class="card table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>KONTAK TOKO</th><th>NAMA TOKO</th><th>TANGGAL KUNJUNGAN</th><th>PIC</th>
+                <th>ORDER KE</th><th>JENIS KUNJUNGAN</th><th>AKTIFITAS</th><th>KATEGORI SAMPLING</th>
+                <th>SAMPLE DESCRIPTION</th><th>SIZE</th><th>KELUHAN & FEEDBACK</th><th>LINK FOTO</th>
+                <th>STATUS FOTO</th><th>KETERANGAN</th><th>STATUS</th><th>ACT</th>
+              </tr>
+            </thead>
+            <tbody>${rows.length > 0 ? rows : `<tr><td colspan="16" class="text-center text-[var(--text-muted)] py-4">Belum ada aktifitas log.</td></tr>`}</tbody>
+          </table>
+        </div>`;
+    }
+
+    function isFotoExempt(pic, jenisKunjungan) {
+      // PENTING: 'jk' di atas sudah di-lowercase, jadi pembandingnya juga
+      // HARUS lowercase ('kunjungan fisik'), bukan 'Kunjungan Fisik'.
+      // Sebelumnya dibandingkan ke string ber-huruf-besar sehingga jk
+      // (selalu huruf kecil) TIDAK PERNAH sama dengan 'Kunjungan Fisik' --
+      // akibatnya PIC Ali dianggap exempt (foto tidak wajib) bahkan saat
+      // Jenis Kunjungan-nya benar-benar 'Kunjungan Fisik'. Ini yang membuat
+      // kunjungan fisik Ali ikut ter-skip dari KPI/dashboard Kepatuhan Foto.
+      let jk = String(jenisKunjungan || '').trim().toLowerCase();
+      return samePic(pic, 'Ali') && jk !== 'kunjungan fisik';
+    }
+
+    window.updateFotoRequirement = function() {
+      let picEl = document.getElementById('actPIC');
+      let jenisEl = document.getElementById('actJenis');
+      let labelEl = document.getElementById('actLinkFotoLabel');
+      if (!picEl || !jenisEl || !labelEl) return;
+      let exempt = isFotoExempt(picEl.value, jenisEl.value);
+      labelEl.textContent = exempt
+        ? 'LINK FOTO KUNJUNGAN (Tidak Wajib - Non-Fisik PIC Ali)'
+        : 'LINK FOTO KUNJUNGAN (Wajib / Poin -)';
+      labelEl.className = exempt ? 'text-xs text-[var(--text-muted)]' : 'text-xs';
+    }
+    
+    window.filterTokoSelectAct = function(val) {
+        let filter = val.toLowerCase();
+        let select = document.getElementById('actSelectToko');
+        let html = '<option value="">-- Pilih Toko Master --</option>';
+        
+        db.toko.forEach(t => {
+            if (!isManager && !samePic(t.pic, myPIC)) return; 
+            let text = t.kodeKontak + ' - ' + t.namaToko;
+            if(text.toLowerCase().includes(filter)) {
+                html += `<option value="${t.kodeKontak}" data-nama="${t.namaToko}" data-pic="${t.pic||''}" data-orderke="${t.orderKe||''}" data-jenis="${t.jenisKunjungan||''}">${text}</option>`;
+            }
+        });
+        select.innerHTML = html;
+    }
+
+    function formAktifitas() {
+      let filteredTokoForAct = isManager ? db.toko : db.toko.filter(t => samePic(t.pic, myPIC));
+      let tokoOptions = filteredTokoForAct.map(t => `<option value="${t.kodeKontak}" data-nama="${t.namaToko}" data-pic="${t.pic||''}" data-orderke="${t.orderKe||''}" data-jenis="${t.jenisKunjungan||''}">${t.kodeKontak} - ${t.namaToko}</option>`).join('');
+      
+      openModal(`
+        <h2 class="text-xl font-bold mb-4 text-[var(--accent)]">Laporan Hasil Visit</h2>
+        <form onsubmit="saveAktifitas(event)">
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="col-span-2"><label class="text-xs">PILIH TOKO * (Ketik untuk mencari master)</label>
+              <input type="text" class="input-field border-[var(--accent)] mb-1" placeholder="🔍 Cari Nama Toko / Kontak ID..." oninput="filterTokoSelectAct(this.value)">
+              <select required id="actSelectToko" name="kontakToko" class="input-field border-[var(--accent)]" onchange="let opt = this.options[this.selectedIndex]; document.getElementById('actNama').value = opt.dataset.nama || ''; document.getElementById('actOrderKe').value = opt.dataset.orderke || ''; document.getElementById('actJenis').value = opt.dataset.jenis || ''; document.getElementById('actPIC').value = opt.dataset.pic || ''; updateFotoRequirement();">
+                <option value="">-- Pilih Toko Master --</option>${tokoOptions}
+              </select>
+              <input type="hidden" name="namaToko" id="actNama">
+            </div>
+            
+            <div><label class="text-xs">TANGGAL KUNJUNGAN AKTUAL *</label><input type="date" required name="tanggalKunjungan" class="input-field" value="${todayStr}"></div>
+            <div><label class="text-xs text-[var(--text-muted)]">PIC (Otomatis Sesuai Toko)</label>
+              <input name="pic" id="actPIC" class="input-field text-gray-500" value="" readonly>
+            </div>
+            <div><label class="text-xs text-[var(--text-muted)]">ORDER KE</label>
+              <select name="orderKe" id="actOrderKe" class="input-field">${optionsHtml(db.setup.ORDER_KE)}</select>
+            </div>
+            <div><label class="text-xs text-[var(--text-muted)]">JENIS KUNJUNGAN</label>
+              <select name="jenisKunjungan" id="actJenis" class="input-field" onchange="updateFotoRequirement()">${optionsHtml(db.setup.JENIS_KUNJUNGAN)}</select>
+            </div>
+            <div><label class="text-xs text-[var(--text-muted)]">AKTIFITAS</label><select name="aktifitas" class="input-field">${optionsHtml(db.setup.AKTIFITAS)}</select></div>
+            <div><label class="text-xs text-[var(--text-muted)]">KATEGORI SAMPLING</label><select name="kategoriSampling" class="input-field">${optionsHtml(db.setup.KATEGORI_SAMPLING)}</select></div>
+            <div><label class="text-xs">SAMPLE DESCRIPTION</label><input name="sampleDescription" class="input-field" placeholder="Deskripsi sample..."></div>
+            <div><label class="text-xs">SIZE</label><input name="size" class="input-field" placeholder="Ukuran/Qty..."></div>
+            <div><label class="text-xs text-[var(--text-muted)]">KELUHAN & FEEDBACK</label><select name="keluhanFeedback" class="input-field">${optionsHtml(db.setup.KELUHAN_FEEDBACK)}</select></div>
+            <div><label class="text-xs" id="actLinkFotoLabel">LINK FOTO KUNJUNGAN (Wajib / Poin -)</label><input name="linkFoto" id="actLinkFoto" class="input-field" placeholder="https://..."></div>
+            <div class="col-span-2"><label class="text-xs">KETERANGAN LOG</label><input name="keterangan" class="input-field"></div>
+            <div class="col-span-2 border-t border-[var(--border)] pt-2 mt-2">
+                <label class="text-xs font-bold text-amber-600">PENJELASAN KELUHAN DETAIL</label>
+                <textarea name="penjelasanKeluhan" class="input-field" placeholder="Tuliskan keluhan lengkap dari customer (jika ada)..." rows="2"></textarea>
+            </div>
+            <div class="col-span-2">
+                <label class="text-xs font-bold text-[#3ac977]">NEXT ACTION</label>
+                <input name="nextAction" class="input-field border-[#3ac977]" placeholder="Tindakan selanjutnya (follow up, pengiriman ulang, dll)...">
+            </div>
+            <div><label class="text-xs text-[var(--text-muted)] mt-2">STATUS AKTIFITAS</label><select name="status" class="input-field">${optionsHtml(db.setup.STATUS_AKTIFITAS)}</select></div>
+          </div>
+          <div class="flex gap-2 pt-2 border-t border-[var(--border)]"><button type="button" onclick="closeModal()" class="btn btn-secondary">Batal</button><button type="submit" class="btn btn-primary flex-1">Simpan Laporan Visit</button></div>
+        </form>
+      `);
+    }
+
+    function saveAktifitas(e) {
+      e.preventDefault(); 
+      let obj = Object.fromEntries(new FormData(e.target)); 
+      obj.id = generateId('ACT');
+      
+      let picUntukAktifitas = obj.pic || (findTokoByKontak(obj.kontakToko) || {}).pic || '';
+      obj.pic = picUntukAktifitas; 
+
+      if (isFotoExempt(picUntukAktifitas, obj.jenisKunjungan)) {
+        obj.linkTersedia = 'Tidak Wajib';
+      } else {
+        obj.linkTersedia = (obj.linkFoto && obj.linkFoto.trim() !== '') ? 'Melampirkan' : 'Tidak Melampirkan';
+        if (obj.linkTersedia === 'Tidak Melampirkan') { 
+            obj.keterangan = (obj.keterangan || '') + ' [MINUS POIN KINERJA: Bukti Link Foto Tidak Dilampirkan]'; 
+        }
+      }
+      
+      db.aktifitas.push(obj); 
+      setDB('db_aktifitas', db.aktifitas);
+
+      let pIdx = db.plan.findIndex(p => p.kontakToko === obj.kontakToko && (p.status === 'Scheduled' || p.status === 'Overdue'));
+      if(pIdx > -1) { 
+          let jenis = obj.jenisKunjungan || ''; 
+          if(obj.status === 'Cancelled') { 
+              db.plan[pIdx].status = 'Cancelled'; 
+          } else if (jenis.includes('Call') || jenis.includes('Remote') || jenis.includes('WA')) { 
+              db.plan[pIdx].status = 'Contacted'; 
+          } else { 
+              db.plan[pIdx].status = 'Visited'; 
+          }
+          db.plan[pIdx].actualDate = obj.tanggalKunjungan; 
+          db.plan[pIdx].daysUntilDue = 'Done'; 
+          setDB('db_plan', db.plan); 
+      }
+
+      let tIdx = db.toko.findIndex(t => t.kodeKontak === obj.kontakToko);
+      if(tIdx > -1) { 
+          db.toko[tIdx].lastVisit = obj.tanggalKunjungan; 
+          setDB('db_toko', db.toko); 
+      }
+      
+      closeModal(); 
+      renderPage('aktifitas');
+    }
+
+    function renderIntelejen(c) {
+      let filteredIntel = db.intel.filter(i => {
+          if (!isManager) {
+              if (i.pic) { if (!samePic(i.pic, myPIC)) return false; }
+              else {
+                  let tData = findTokoByKontak(i.kontakToko);
+                  if (!tData || !samePic(tData.pic, myPIC)) return false;
+              }
+          }
+          return true;
+      });
+
+      let rows = filteredIntel.map(i => `<tr>
+        <td>${i.date}</td>
+        <td class="text-xs">${i.kontakToko}</td>
+        <td class="font-bold">${i.namaToko}</td>
+        <td class="text-[#3ac977] font-bold">${i.pic || '-'}</td>
+        <td class="text-[#0d99ff] font-bold">${i.kompetitor || '-'}</td>
+        <td>${i.aktivitasKompetitor}</td>
+        <td class="text-xs whitespace-normal max-w-xs break-words">${i.keteranganDetail}</td>
+        <td>${isManager ? `<button onclick="delIntel('${i.id}')" class="text-xs text-[var(--danger)] font-bold">Del</button>` : ''}</td>
+      </tr>`).join('');
+      c.innerHTML = `
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-3xl font-bold">Intelejen Report</h1>
+          <button onclick="formIntel()" class="btn btn-primary">+ Add Report Kompetitor</button>
+        </div>
+        <div class="card table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>DATE</th><th>KONTAK TOKO</th><th>NAMA TOKO</th><th>PIC</th><th>KOMPETITOR</th>
+                <th>AKTIVITAS KOMPETITOR</th><th>KETERANGAN DETAIL</th><th>ACT</th>
+              </tr>
+            </thead>
+            <tbody>${rows.length > 0 ? rows : `<tr><td colspan="8" class="text-center text-[var(--text-muted)] py-4">Belum ada report intelejen.</td></tr>`}</tbody>
+          </table>
+        </div>`;
+    }
+
+    function formIntel() {
+      let filteredTokoForIntel = isManager ? db.toko : db.toko.filter(t => samePic(t.pic, myPIC));
+      let tokoOptions = filteredTokoForIntel.map(t => `<option value="${t.kodeKontak}" data-nama="${t.namaToko}">${t.kodeKontak} - ${t.namaToko}</option>`).join('');
+      let picSelectHtml = isManager ?
+            `<select required name="pic" class="input-field">${optionsHtml(db.setup.PIC)}</select>` :
+            `<input name="pic" class="input-field text-gray-500" value="${myPIC}" readonly>`;
+
+      openModal(`
+        <h2 class="text-xl font-bold mb-4 text-[#58bad7]">Form Intelejen Kompetitor</h2>
+        <form onsubmit="saveIntel(event)">
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div><label class="text-xs">DATE *</label><input type="date" required name="date" class="input-field" value="${todayStr}"></div>
+            <div><label class="text-xs text-[var(--text-muted)]">PILIH KONTAK TOKO *</label>
+              <select required name="kontakToko" class="input-field" onchange="document.getElementById('intNama').value = this.options[this.selectedIndex].dataset.nama">
+                <option value="">Pilih Toko...</option>${tokoOptions}
+              </select>
+              <input type="hidden" name="namaToko" id="intNama">
+            </div>
+            <div><label class="text-xs text-[var(--text-muted)]">PIC *</label>${picSelectHtml}</div>
+            <div><label class="text-xs text-[var(--text-muted)]">NAMA KOMPETITOR</label><select name="kompetitor" class="input-field">${optionsHtml(db.setup.KOMPETITOR)}</select></div>
+            <div><label class="text-xs text-[var(--text-muted)]">AKTIVITAS KOMPETITOR</label><select name="aktivitasKompetitor" class="input-field">${optionsHtml(db.setup.JENIS_AKTIVITAS_KOMPETITOR)}</select></div>
+            <div class="col-span-2">
+              <label class="text-xs">KETERANGAN DETAIL <span class="text-[var(--text-muted)]">(maks 150 karakter)</span></label>
+              <textarea name="keteranganDetail" class="input-field" required rows="3" maxlength="150" oninput="document.getElementById('intKetCounter').innerText = this.value.length + '/150'"></textarea>
+              <div id="intKetCounter" class="text-[10px] text-[var(--text-muted)] text-right mt-1">0/150</div>
+            </div>
+          </div>
+          <div class="flex gap-2 pt-2 border-t border-[var(--border)]"><button type="button" onclick="closeModal()" class="btn btn-secondary">Batal</button><button type="submit" class="btn btn-primary flex-1">Simpan Laporan Intel</button></div>
+        </form>
+      `);
+    }
+    function saveIntel(e) { e.preventDefault(); let obj = Object.fromEntries(new FormData(e.target)); obj.id = generateId('INT'); obj.keteranganDetail = (obj.keteranganDetail || '').slice(0, 150); db.intel.push(obj); setDB('db_intel', db.intel); closeModal(); renderPage('intelejen'); }
+
+    window.onload = async () => {
+        showCloudStatus('⏳ Memuat data dari Google Sheet...');
+        try {
+            const cloudData = await cloudGetAll(); 
+            if (cloudData) {
+                db.setup = cloudData.setup && Object.keys(cloudData.setup).length ? cloudData.setup : db.setup;
+                db.toko = cloudData.toko && cloudData.toko.length ? cloudData.toko : db.toko;
+                db.plan = cloudData.plan && cloudData.plan.length ? cloudData.plan : db.plan;
+                db.aktifitas = cloudData.aktifitas && cloudData.aktifitas.length ? cloudData.aktifitas : db.aktifitas;
+                db.intel = cloudData.intel && cloudData.intel.length ? cloudData.intel : db.intel;
+                db.communication = cloudData.communication || db.communication || [];
+                hideCloudStatus();
+            } else {
+                showCloudStatus('⚠️ Gagal terhubung ke Google Sheet. Memakai data cadangan (offline) — perubahan TIDAK akan tersimpan ke cloud.', true);
+            }
+        } catch (err) {
+            console.error(err);
+            showCloudStatus('⚠️ Gagal terhubung ke Google Sheet. Memakai data cadangan (offline) — perubahan TIDAK akan tersimpan ke cloud.', true);
+        }
+        normalizePlanStatus();
+        applyRoleRestrictions(loggedInRole);
+    };
+  </script>
+</body>
+</html>
