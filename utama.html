@@ -1133,6 +1133,20 @@
       renderPage(window.currentPage === 'communication' ? 'communication' : 'dashboard');
     };
 
+    window.communicationLogFilters = window.communicationLogFilters || { search: '', channel: '', date: '' };
+
+    window.resetCommunicationFilters = function() {
+      window.communicationLogFilters = { search: '', channel: '', date: '' };
+      renderPage('communication');
+    };
+
+    window.applyCommunicationFilters = function() {
+      window.communicationLogFilters.search = document.getElementById('communication-search')?.value || '';
+      window.communicationLogFilters.channel = document.getElementById('communication-channel-filter')?.value || '';
+      window.communicationLogFilters.date = document.getElementById('communication-date-filter')?.value || '';
+      renderPage('communication');
+    };
+
     function renderCommunication(c) {
       const normalizedRole = String(loggedInRole || '').trim().toLowerCase();
       const canAccessCommunication =
@@ -1150,9 +1164,32 @@
         return;
       }
 
-      const rows = (db.communication || [])
+      const filters = window.communicationLogFilters || { search: '', channel: '', date: '' };
+      const allRows = (db.communication || [])
         .slice()
         .sort((a, b) => new Date(b.tanggalMasuk) - new Date(a.tanggalMasuk));
+
+      const channels = [...new Set(allRows
+        .map(x => String(x.sumberSosialMedia || x.sumber || '').trim())
+        .filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b));
+
+      const searchTerm = String(filters.search || '').trim().toLowerCase();
+      const rows = allRows.filter(x => {
+        const user = String(x.namaUser || '').toLowerCase();
+        const channel = String(x.sumberSosialMedia || x.sumber || '').toLowerCase();
+        const summary = String(x.intiPembicaraan || '').toLowerCase();
+        const date = String(x.tanggalMasuk || '');
+
+        const matchesSearch = !searchTerm ||
+          user.includes(searchTerm) ||
+          channel.includes(searchTerm) ||
+          summary.includes(searchTerm);
+        const matchesChannel = !filters.channel || channel === String(filters.channel).toLowerCase();
+        const matchesDate = !filters.date || date === filters.date;
+
+        return matchesSearch && matchesChannel && matchesDate;
+      });
 
       c.innerHTML = `
         <div class="flex justify-between items-center mb-6">
@@ -1163,8 +1200,42 @@
             </p>
           </div>
           <button onclick="formCommunication()" class="btn btn-primary">
-            + Tambah Komunikasi
+            + LOG
           </button>
+        </div>
+
+        <div class="card p-4 mb-4">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+            <div class="md:col-span-2">
+              <label class="text-xs font-bold">SEARCH</label>
+              <input
+                id="communication-search"
+                type="text"
+                value="${String(filters.search || '').replace(/"/g, '&quot;')}"
+                placeholder="Search User, Channel, atau Log Summary..."
+                class="input-field"
+                onkeydown="if(event.key === 'Enter') applyCommunicationFilters()"
+              >
+            </div>
+
+            <div>
+              <label class="text-xs font-bold">CHANNEL</label>
+              <select id="communication-channel-filter" class="input-field">
+                <option value="">All Channel</option>
+                ${channels.map(ch => `<option value="${ch.replace(/"/g, '&quot;')}" ${filters.channel === ch ? 'selected' : ''}>${ch}</option>`).join('')}
+              </select>
+            </div>
+
+            <div>
+              <label class="text-xs font-bold">DATE</label>
+              <input id="communication-date-filter" type="date" value="${filters.date || ''}" class="input-field">
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-2 mt-3">
+            <button onclick="resetCommunicationFilters()" class="btn btn-secondary">Reset</button>
+            <button onclick="applyCommunicationFilters()" class="btn btn-primary">Search / Filter</button>
+          </div>
         </div>
 
         <div class="card table-wrapper">
@@ -1172,10 +1243,10 @@
             <thead>
               <tr>
                 <th>NO</th>
-                <th>NAMA USER</th>
-                <th>TANGGAL MASUK</th>
-                <th>SUMBER</th>
-                <th>INTI PEMBICARAAN</th>
+                <th>USER</th>
+                <th>TANGGAL</th>
+                <th>CHANNEL</th>
+                <th>LOG SUMMARY</th>
               </tr>
             </thead>
             <tbody>
@@ -1192,7 +1263,7 @@
                 ||
                 `<tr>
                   <td colspan="5" class="text-center text-[var(--text-muted)] py-6">
-                    Belum ada Communication Log
+                    Tidak ada data yang sesuai dengan filter.
                   </td>
                 </tr>`
               }
