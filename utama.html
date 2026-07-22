@@ -378,7 +378,7 @@
         db.intel.forEach(i => rows.push([i.id,i.date,i.kontakToko,i.namaToko,i.pic,i.kompetitor,i.aktivitasKompetitor,i.keteranganDetail]));
         rows.push([]);
         rows.push(['COMMUNICATION LOG']);
-        rows.push(['ID','Nama User','Tanggal Masuk','Sumber Sosial Media','Inti Pembicaraan']);
+        rows.push(['ID','Nama User','Tanggal Masuk','Channel','Inti Pembicaraan']);
         (db.communication || []).forEach(x => rows.push([x.id,x.namaUser,x.tanggalMasuk,x.sumberSosialMedia,x.intiPembicaraan]));
         const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(r => r.map(esc).join(',')).join('\n');
         const link = document.createElement('a');
@@ -596,7 +596,7 @@
             <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[var(--accent)]">KATEGORI SAMPLING</h3><div class="flex-1 relative w-full h-full"><canvas id="chartSampling"></canvas></div></div>
             <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-amber-600">KEPATUHAN FOTO (PIC)</h3><div class="flex-1 relative w-full h-full"><canvas id="chartLampiran"></canvas></div></div>
             <div class="card h-64 flex flex-col lg:col-span-2 shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[#58bad7]">LAPORAN KOMPETITOR</h3><div class="flex-1 relative w-full h-full"><canvas id="chartKompetitor"></canvas></div></div>
-            <div class="card h-64 flex flex-col lg:col-span-3 shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[var(--accent)]">SUMBER COMMUNICATION LOG</h3><div class="flex-1 relative w-full h-full"><canvas id="chartCommunication"></canvas></div></div>
+            <div class="card h-64 flex flex-col lg:col-span-3 shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[var(--accent)]">COMMUNICATION LOG CHANNEL</h3><div class="flex-1 relative w-full h-full"><canvas id="chartCommunication"></canvas></div></div>
         </div>
 
         <div class="card mb-8 shadow-md">
@@ -1077,9 +1077,9 @@
             </div>
 
             <div>
-              <label class="text-xs">SUMBER SOSIAL MEDIA / WEBSITE *</label>
+              <label class="text-xs">CHANNEL *</label>
               <select required name="sumberSosialMedia" class="input-field">
-                <option value="">Pilih Sumber</option>
+                <option value="">Pilih Channel</option>
                 <option value="Instagram">Instagram</option>
                 <option value="Facebook">Facebook</option>
                 <option value="TikTok">TikTok</option>
