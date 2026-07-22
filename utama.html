@@ -507,6 +507,15 @@
       let issueData = {}; fAktifitasCombined.forEach(a => { if(a.keluhanFeedback && a.keluhanFeedback !== 'Tidak ada keluhan') issueData[a.keluhanFeedback] = (issueData[a.keluhanFeedback] || 0) + 1; });
       let samplingData = {}; fAktifitasCombined.forEach(a => { if(a.kategoriSampling) samplingData[a.kategoriSampling] = (samplingData[a.kategoriSampling] || 0) + 1; });
 
+      // Communication Log: hitung jumlah komunikasi berdasarkan sumber.
+      // Data tetap berasal dari seluruh Communication Log yang tersimpan.
+      let communicationSourceData = {};
+      (db.communication || []).forEach(x => {
+        let source = String(x.sumberSosialMedia || '').trim() || 'Tidak Diketahui';
+        communicationSourceData[source] = (communicationSourceData[source] || 0) + 1;
+      });
+      let communicationSourceLabels = Object.keys(communicationSourceData).sort((a, b) => communicationSourceData[b] - communicationSourceData[a]);
+
       let lampiranByPIC = {};
       db.setup.PIC.forEach(p => { lampiranByPIC[p] = { 'Melampirkan': 0, 'Tidak Melampirkan': 0 }; });
       
@@ -587,6 +596,7 @@
             <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[var(--accent)]">KATEGORI SAMPLING</h3><div class="flex-1 relative w-full h-full"><canvas id="chartSampling"></canvas></div></div>
             <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-amber-600">KEPATUHAN FOTO (PIC)</h3><div class="flex-1 relative w-full h-full"><canvas id="chartLampiran"></canvas></div></div>
             <div class="card h-64 flex flex-col lg:col-span-2 shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[#58bad7]">LAPORAN KOMPETITOR</h3><div class="flex-1 relative w-full h-full"><canvas id="chartKompetitor"></canvas></div></div>
+            <div class="card h-64 flex flex-col lg:col-span-3 shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[var(--accent)]">SUMBER COMMUNICATION LOG</h3><div class="flex-1 relative w-full h-full"><canvas id="chartCommunication"></canvas></div></div>
         </div>
 
         <div class="card mb-8 shadow-md">
@@ -669,7 +679,7 @@
       `;
 
       if (!window.myCharts) window.myCharts = {};
-      ['chartKunjungan', 'chartLampiran', 'chartIssue', 'chartSampling', 'chartKompetitor'].forEach(id => { if(window.myCharts[id]) window.myCharts[id].destroy(); });
+      ['chartKunjungan', 'chartLampiran', 'chartIssue', 'chartSampling', 'chartKompetitor', 'chartCommunication'].forEach(id => { if(window.myCharts[id]) window.myCharts[id].destroy(); });
 
       setTimeout(() => {
         let optG = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#888888', font: { size: 10, family: 'Poppins' }, usePointStyle: true, boxWidth: 8, padding: 14 } } } };
@@ -680,6 +690,7 @@
         if(document.getElementById('chartIssue')) window.myCharts['chartIssue'] = new Chart(document.getElementById('chartIssue'), { type: 'pie', data: { labels: Object.keys(issueData).length ? Object.keys(issueData) : ['Aman'], datasets: [{ data: Object.keys(issueData).length ? Object.values(issueData) : [1], backgroundColor: ['#3ac977', '#58bad7', '#0d99ff', '#3aacff'], borderWidth: 3, borderColor: '#ffffff', hoverOffset: 6 }] }, options: optG });
         if(document.getElementById('chartSampling')) window.myCharts['chartSampling'] = new Chart(document.getElementById('chartSampling'), { type: 'polarArea', data: { labels: Object.keys(samplingData).length ? Object.keys(samplingData) : ['N/A'], datasets: [{ data: Object.keys(samplingData).length ? Object.values(samplingData) : [1], backgroundColor: ['rgba(13, 153, 255, 0.75)', 'rgba(88, 186, 215, 0.75)', 'rgba(58, 201, 119, 0.75)'], borderWidth: 2, borderColor: '#ffffff' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { display: false } } } });
         if(document.getElementById('chartKompetitor')) window.myCharts['chartKompetitor'] = new Chart(document.getElementById('chartKompetitor'), { type: 'bar', data: { labels: Object.keys(compData).length ? Object.keys(compData) : ['Belum Ada'], datasets: [{ label: 'Laporan', data: Object.keys(compData).length ? Object.values(compData) : [0], backgroundColor: '#58bad7', borderRadius: 6, maxBarThickness: 32 }] }, options: optBar });
+        if(document.getElementById('chartCommunication')) window.myCharts['chartCommunication'] = new Chart(document.getElementById('chartCommunication'), { type: 'bar', data: { labels: communicationSourceLabels.length ? communicationSourceLabels : ['Belum Ada Data'], datasets: [{ label: 'Jumlah Komunikasi', data: communicationSourceLabels.length ? communicationSourceLabels.map(source => communicationSourceData[source]) : [0], backgroundColor: '#58bad7', borderRadius: 6, maxBarThickness: 38 }] }, options: { ...optBar, plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(context) { return ' ' + context.raw + ' komunikasi'; } } } } } });
       }, 50);
     }
 
